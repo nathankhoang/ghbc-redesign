@@ -1,0 +1,114 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
+import { BOOKING_STATUS } from "@/lib/constants";
+
+export type BookingResult = { ok: boolean; error?: string };
+
+function revalidate() {
+  revalidatePath("/schedule");
+  revalidatePath("/profile");
+}
+
+export async function bookClass(sessionId: string): Promise<BookingResult> {
+  const session = await auth();
+  if (!session?.user?.id) return { ok: false, error: "Please sign in." };
+  const userId = session.user.id;
+
+  const cls = await prisma.classSession.findUnique({
+    where: { id: sessionId },
+    include: {
+      _count: { select: { bookings: { where: { status: BOOKING_STATUS.BOOKED } } } },
+    },
+  });
+  if (!cls) return { ok: false, error: "Class not found." };
+  if (cls.startAt < new Date())
+    return { ok: false, error: "That class has already started." };
+  if (cls._count.bookings >= cls.capacity)
+    return { ok: false, error: "This class is full." };
+
+  const existing = await prisma.booking.findUnique({
+    where: { userId_sessionId: { userId, sessionId } },
+  });
+  if (existing && existing.status === BOOKING_STATUS.BOOKED)
+    return { ok: false, error: "You're already booked for this class." };
+
+  await prisma.booking.upsert({
+    where: { userId_sessionId: { userId, sessionId } },
+    create: { userId, sessionId, status: BOOKING_STATUS.BOOKED },
+    update: { status: BOOKING_STATUS.BOOKED },
+  });
+
+  revalidate();
+  return { ok: true };
+}
+
+export async function joinWaitlist(sessionId: string): Promise<BookingResult> {
+  const session = await auth();
+  if (!session?.user?.id) return { ok: false, error: "Please sign in." };
+  const userId = session.user.id;
+
+  const cls = await prisma.classSession.findUnique({
+    where: { id: sessionId },
+    include: {
+      _count: { select: { bookings: { where: { status: BOOKING_STATUS.BOOKED } } } },
+    },
+  });
+  if (!cls) return { ok: false, error: "Class not found." };
+  if (cls.startAt < new Date())
+    return { ok: false, error: "That class has already started." };
+  // If a spot is actually open, book instead of waitlisting.
+  if (cls._count.bookings < cls.capacity) return bookClass(sessionId);
+
+  const existing = await prisma.booking.findUnique({
+    where: { userId_sessionId: { userId, sessionId } },
+  });
+  if (existing && existing.status === BOOKING_STATUS.WAITLIST)
+    return { ok: false, error: "You're already on the waitlist." };
+  if (existing && existing.status === BOOKING_STATUS.BOOKED)
+    return { ok: false, error: "You're already booked for this class." };
+
+  await prisma.booking.upsert({
+    where: { userId_sessionId: { userId, sessionId } },
+    create: { userId, sessionId, status: BOOKING_STATUS.WAITLIST },
+    update: { status: BOOKING_STATUS.WAITLIST },
+  });
+
+  revalidate();
+  return { ok: true };
+}
+
+export async function cancelBooking(bookingId: string): Promise<BookingResult> {
+  const session = await auth();
+  if (!session?.user?.id) return { ok: false, error: "Please sign in." };
+
+  const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
+  if (!booking || booking.userId !== session.user.id)
+    return { ok: false, error: "Booking not found." };
+
+  const wasBooked = booking.status === BOOKING_STATUS.BOOKED;
+
+  await prisma.booking.update({
+    where: { id: bookingId },
+    data: { status: BOOKING_STATUS.CANCELLED },
+  });
+
+  // Freeing a booked spot promotes the longest-waiting person off the waitlist.
+  if (wasBooked) {
+    const next = await prisma.booking.findFirst({
+      where: { sessionId: booking.sessionId, status: BOOKING_STATUS.WAITLIST },
+      orderBy: { createdAt: "asc" },
+    });
+    if (next) {
+      await prisma.booking.update({
+        where: { id: next.id },
+        data: { status: BOOKING_STATUS.BOOKED },
+      });
+    }
+  }
+
+  revalidate();
+  return { ok: true };
+}

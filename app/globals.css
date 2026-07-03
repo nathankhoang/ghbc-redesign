@@ -1,26 +1,119 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ---- Golden Era design tokens (sampled from the gym's oxblood promo flyer) ---- */
+@theme {
+  /* Core palette */
+  --color-ink: #1a0e0c; /* deep warm oxblood-black — base background */
+  --color-oxblood: #4f2222; /* the leather maroon — surfaces */
+  --color-oxblood-600: #67302c; /* lighter oxblood */
+  --color-oxblood-900: #350f0f; /* deepest, for vignette */
+  --color-cream: #ece3d0; /* warm bone — body text */
+  --color-bone: #f6f0e2; /* bright headings */
+  --color-bronze: #b8935a; /* tan-gold accent (the flyer's drop-shadow) */
+  --color-gold: #d6ab63; /* brighter gold for highlights */
+  --color-blood: #a5352e; /* punchy red for CTAs/energy */
+
+  /* Fonts */
+  --font-display: var(--font-anton); /* poster headlines */
+  --font-condensed: var(--font-oswald); /* subheads / UI / stats */
+  --font-sans: var(--font-inter); /* body */
+  --font-serif: var(--font-dm-serif); /* vintage accent */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--color-ink);
+    color: var(--color-cream);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: var(--color-gold);
+    color: var(--color-ink);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-oxblood-900);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-oxblood-600);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-bronze);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .font-poster {
+    font-family: var(--font-display);
+    line-height: 0.9;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+  }
+
+  /* The flyer's signature offset drop-shadow on cream poster type */
+  .poster-shadow {
+    text-shadow:
+      2px 2px 0 var(--color-bronze),
+      4px 4px 0 rgba(53, 15, 15, 0.6);
+  }
+
+  .text-stroke-cream {
+    -webkit-text-stroke: 1.5px var(--color-cream);
+    color: transparent;
+  }
+  .text-stroke-gold {
+    -webkit-text-stroke: 1.5px var(--color-gold);
+    color: transparent;
+  }
+
+  .fluid-hero {
+    font-size: clamp(3.25rem, 13vw, 12rem);
+  }
+  .fluid-h2 {
+    font-size: clamp(2.25rem, 6vw, 5.5rem);
+  }
+  .fluid-h3 {
+    font-size: clamp(1.5rem, 3vw, 2.75rem);
+  }
+
+  /* Vintage film-grain overlay */
+  .grain::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .will-reveal {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
