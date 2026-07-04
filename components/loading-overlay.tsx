@@ -138,7 +138,7 @@ export function LoadingOverlay() {
       const proxy = { v: 0 };
       const t1 = gsap.to(proxy, {
         v: 90,
-        duration: 2.2,
+        duration: 3.7,
         ease: "power2.out",
         onUpdate: () => write(proxy.v),
         onComplete: async () => {
