@@ -1,0 +1,270 @@
+/* "Ringside" opening-bell loading screen — locally scoped so globals.css is never touched. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100; /* above the .grain film layer (z-60) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  /* Reuse the hero's signature "spotlight from the top" oxblood radial. */
+  background: radial-gradient(120% 120% at 50% 0%, #67302c 0%, #4f2222 38%, #1a0e0c 100%);
+  color: #ece3d0;
+  transform: translateZ(0);
+  will-change: opacity, transform;
+}
+
+/* Breathing spotlight cone from the top-center — an amplification of the base gradient. */
+.spotlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    60% 55% at 50% -8%,
+    rgba(214, 171, 99, 0.22) 0%,
+    rgba(184, 147, 90, 0.08) 32%,
+    transparent 62%
+  );
+  animation: breathe 3.2s ease-in-out infinite;
+  transform-origin: 50% 0%;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scaleY(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1.06);
+  }
+}
+
+/* Edge vignette — pulls the corners down to ink, matching the hero. */
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(100% 80% at 50% 60%, transparent 40%, rgba(26, 14, 12, 0.88) 100%);
+}
+
+/* Same fractal-noise film grain the site uses on <body>, so the loader shares its texture. */
+.grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Centre column */
+.stage {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 1.5rem;
+}
+
+.eyebrow {
+  font-family: var(--font-condensed);
+  text-transform: uppercase;
+  letter-spacing: 0.42em;
+  font-size: 0.72rem;
+  color: #d6ab63;
+  margin-bottom: 1.6rem;
+  padding-left: 0.42em; /* optical: balance the trailing tracking */
+}
+
+.crest {
+  width: clamp(120px, 22vw, 172px);
+  height: auto;
+  margin-bottom: 1.5rem;
+  opacity: 0.28;
+  filter: brightness(0.7) sepia(0.15);
+  will-change: opacity, filter;
+}
+
+/* Fight-clock ring + counter */
+.dial {
+  position: relative;
+  width: min(70vw, 420px);
+  height: min(70vw, 420px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg); /* 0% starts at 12 o'clock */
+  overflow: visible;
+}
+
+.ringTrack {
+  fill: none;
+  stroke: rgba(103, 48, 44, 0.55);
+  stroke-width: 1.4;
+}
+
+.ringArc {
+  fill: none;
+  stroke: url(#ghbcArc);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(214, 171, 99, 0.5));
+}
+
+.tickMinor {
+  stroke: rgba(236, 227, 208, 0.28);
+  stroke-width: 0.7;
+}
+
+.tickMajor {
+  stroke: rgba(214, 171, 99, 0.85);
+  stroke-width: 1.6;
+}
+
+/* Mechanical split-flap-style counter card */
+.counterWrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  will-change: transform;
+}
+
+.counter {
+  position: relative;
+  font-family: var(--font-display);
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  font-size: clamp(3.2rem, 12vw, 6.4rem);
+  color: #f6f0e2;
+  text-shadow:
+    2px 2px 0 #b8935a,
+    4px 4px 0 rgba(53, 15, 15, 0.6); /* the flyer's poster-shadow */
+  padding: 0.02em 0.1em 0;
+}
+
+/* The seam line across the digits reads as a mechanical flip-card. */
+.counter::after {
+  content: "";
+  position: absolute;
+  left: -4%;
+  right: -4%;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-1px);
+  background: rgba(26, 14, 12, 0.55);
+  box-shadow: 0 1px 0 rgba(236, 227, 208, 0.08);
+  pointer-events: none;
+}
+
+.percent {
+  font-family: var(--font-condensed);
+  font-size: 1.1rem;
+  color: #b8935a;
+  vertical-align: super;
+  margin-left: 0.15em;
+  text-shadow: none;
+}
+
+.round {
+  margin-top: 0.55rem;
+  font-family: var(--font-condensed);
+  text-transform: uppercase;
+  letter-spacing: 0.5em;
+  font-size: 0.62rem;
+  color: rgba(236, 227, 208, 0.55);
+  padding-left: 0.5em;
+}
+
+.disciplines {
+  margin-top: 2rem;
+  font-family: var(--font-condensed);
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  font-size: 0.68rem;
+  color: rgba(236, 227, 208, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 0.85em;
+}
+
+.star {
+  color: #d6ab63;
+  font-size: 0.7em;
+}
+
+/* Milestone impact ripple (triggered by GSAP at 25/50/75%) */
+.ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(70vw, 420px);
+  height: min(70vw, 420px);
+  margin: calc(min(70vw, 420px) / -2) 0 0 calc(min(70vw, 420px) / -2);
+  border-radius: 50%;
+  border: 1px solid rgba(214, 171, 99, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Bone-white bloom for the climax */
+.flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 3;
+  background: radial-gradient(60% 55% at 50% 44%, #fffaf0 0%, #f6f0e2 45%, rgba(246, 240, 226, 0) 78%);
+}
+
+/* Tap-to-ring fallback (shown only if the browser blocks cold autoplay) */
+.prompt {
+  position: absolute;
+  bottom: clamp(2rem, 8vh, 5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  border-radius: 999px;
+  background: #d6ab63;
+  color: #1a0e0c;
+  font-family: var(--font-condensed);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.85rem 2rem;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  animation: promptPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes promptPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(214, 171, 99, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 14px rgba(214, 171, 99, 0);
+  }
+}
+
+.prompt:hover {
+  background: #f6f0e2;
+}

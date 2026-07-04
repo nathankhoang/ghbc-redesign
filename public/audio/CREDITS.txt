@@ -1,0 +1,6 @@
+bell.mp3 — boxing "opening bell" for the loading screen
+Source: Pixabay Sound Effects — "Boxing Bell 1"
+URL:    https://pixabay.com/sound-effects/film-special-effects-boxing-bell-1-232450/
+License: Pixabay Content License (free for commercial use, no attribution required)
+Processing: trimmed lead-in silence, loudness-normalized, downmixed to mono,
+            tail fade-out, re-encoded 128 kbps (~70 KB) via ffmpeg.

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Anton, Oswald, Inter, DM_Serif_Display } from "next/font/google";
 import "./globals.css";
 import { SmoothScroll } from "@/components/smooth-scroll";
+import { LoadingOverlay } from "@/components/loading-overlay";
 
 const anton = Anton({ weight: "400", subsets: ["latin"], variable: "--font-anton" });
 const oswald = Oswald({ subsets: ["latin"], variable: "--font-oswald" });
@@ -30,6 +31,7 @@ export default function RootLayout({
     >
       <body suppressHydrationWarning className="grain antialiased">
         <SmoothScroll>{children}</SmoothScroll>
+        <LoadingOverlay />
       </body>
     </html>
   );
