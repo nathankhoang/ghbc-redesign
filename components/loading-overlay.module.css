@@ -1,270 +1,196 @@
-/* "Ringside" opening-bell loading screen — locally scoped so globals.css is never touched. */
+/* "Fight Bill" opening loader — a vintage boxing promotion sheet mid-print.
+   Editorial, asymmetric, textured. Scoped locally so globals.css is never touched. */
 
 .overlay {
   position: fixed;
   inset: 0;
   z-index: 100; /* above the .grain film layer (z-60) */
-  display: flex;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
-  /* Reuse the hero's signature "spotlight from the top" oxblood radial. */
-  background: radial-gradient(120% 120% at 50% 0%, #67302c 0%, #4f2222 38%, #1a0e0c 100%);
+  /* Light from the upper-left, not a centered spotlight — breaks the symmetric look. */
+  background:
+    radial-gradient(130% 110% at 12% -15%, #5a2a26 0%, #3a1a16 40%, #180c0a 100%);
   color: #ece3d0;
   transform: translateZ(0);
-  will-change: opacity, transform;
+  will-change: transform;
 }
 
-/* Breathing spotlight cone from the top-center — an amplification of the base gradient. */
-.spotlight {
+/* Halftone dot screen, angled like a real print screen. */
+.halftone {
   position: absolute;
-  inset: 0;
+  inset: -30%;
   pointer-events: none;
-  background: radial-gradient(
-    60% 55% at 50% -8%,
-    rgba(214, 171, 99, 0.22) 0%,
-    rgba(184, 147, 90, 0.08) 32%,
-    transparent 62%
-  );
-  animation: breathe 3.2s ease-in-out infinite;
-  transform-origin: 50% 0%;
+  background-image: radial-gradient(circle at center, rgba(246, 240, 226, 0.16) 0.7px, transparent 1.2px);
+  background-size: 5px 5px;
+  transform: rotate(16deg) scale(1.4);
+  opacity: 0.5;
+  mix-blend-mode: soft-light;
 }
 
-@keyframes breathe {
-  0%,
-  100% {
-    opacity: 0.75;
-    transform: scaleY(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scaleY(1.06);
-  }
+/* Heavier, faintly jittering film grain — printed-paper tooth. */
+.grain {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  opacity: 0.12;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grainShift 0.6s steps(3) infinite;
 }
 
-/* Edge vignette — pulls the corners down to ink, matching the hero. */
+@keyframes grainShift {
+  0% { transform: translate(0, 0); }
+  33% { transform: translate(-2%, 1%); }
+  66% { transform: translate(1%, -2%); }
+  100% { transform: translate(0, 0); }
+}
+
 .vignette {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(100% 80% at 50% 60%, transparent 40%, rgba(26, 14, 12, 0.88) 100%);
+  background: radial-gradient(120% 100% at 50% 45%, transparent 45%, rgba(20, 10, 8, 0.9) 100%);
 }
 
-/* Same fractal-noise film grain the site uses on <body>, so the loader shares its texture. */
-.grain {
+/* The printed sheet — everything sits on an asymmetric editorial grid. */
+.sheet {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  opacity: 0.06;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-/* Centre column */
-.stage {
-  position: relative;
   z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0 1.5rem;
-}
-
-.eyebrow {
-  font-family: var(--font-condensed);
-  text-transform: uppercase;
-  letter-spacing: 0.42em;
-  font-size: 0.72rem;
-  color: #d6ab63;
-  margin-bottom: 1.6rem;
-  padding-left: 0.42em; /* optical: balance the trailing tracking */
-}
-
-.crest {
-  width: clamp(120px, 22vw, 172px);
-  height: auto;
-  margin-bottom: 1.5rem;
-  opacity: 0.28;
-  filter: brightness(0.7) sepia(0.15);
-  will-change: opacity, filter;
-}
-
-/* Fight-clock ring + counter */
-.dial {
-  position: relative;
-  width: min(70vw, 420px);
-  height: min(70vw, 420px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.ring {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg); /* 0% starts at 12 o'clock */
-  overflow: visible;
-}
-
-.ringTrack {
-  fill: none;
-  stroke: rgba(103, 48, 44, 0.55);
-  stroke-width: 1.4;
-}
-
-.ringArc {
-  fill: none;
-  stroke: url(#ghbcArc);
-  stroke-width: 2.6;
-  stroke-linecap: round;
-  filter: drop-shadow(0 0 6px rgba(214, 171, 99, 0.5));
-}
-
-.tickMinor {
-  stroke: rgba(236, 227, 208, 0.28);
-  stroke-width: 0.7;
-}
-
-.tickMajor {
-  stroke: rgba(214, 171, 99, 0.85);
-  stroke-width: 1.6;
-}
-
-/* Mechanical split-flap-style counter card */
-.counterWrap {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  padding: clamp(1.4rem, 4vw, 3.2rem) clamp(1.4rem, 5vw, 4rem);
   will-change: transform;
 }
 
-.counter {
-  position: relative;
-  font-family: var(--font-display);
-  line-height: 0.9;
-  letter-spacing: -0.01em;
-  text-transform: uppercase;
-  font-size: clamp(3.2rem, 12vw, 6.4rem);
-  color: #f6f0e2;
-  text-shadow:
-    2px 2px 0 #b8935a,
-    4px 4px 0 rgba(53, 15, 15, 0.6); /* the flyer's poster-shadow */
-  padding: 0.02em 0.1em 0;
-}
-
-/* The seam line across the digits reads as a mechanical flip-card. */
-.counter::after {
-  content: "";
+/* --- top-left kicker block --- */
+.kicker {
   position: absolute;
-  left: -4%;
-  right: -4%;
-  top: 50%;
+  top: clamp(1.4rem, 4vw, 3.2rem);
+  left: clamp(1.4rem, 5vw, 4rem);
+  max-width: 62vw;
+}
+
+.kickerLine {
+  font-family: var(--font-condensed);
+  text-transform: uppercase;
+  letter-spacing: 0.34em;
+  font-size: clamp(0.6rem, 0.85vw, 0.8rem);
+  color: #d6ab63;
+  white-space: nowrap;
+}
+
+.kickerRule {
   height: 2px;
-  transform: translateY(-1px);
-  background: rgba(26, 14, 12, 0.55);
-  box-shadow: 0 1px 0 rgba(236, 227, 208, 0.08);
+  width: clamp(120px, 22vw, 320px);
+  margin: 0.7rem 0;
+  background: linear-gradient(90deg, #d6ab63, #b8935a 60%, transparent);
+  transform-origin: left;
+}
+
+.kickerSub {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(0.85rem, 1.4vw, 1.15rem);
+  color: rgba(236, 227, 208, 0.7);
+}
+
+/* --- the hero headline that inks in as progress --- */
+.headline {
+  position: absolute;
+  left: clamp(1.4rem, 5vw, 4rem);
+  top: 50%;
+  transform: translateY(-52%);
+  /* --fill (0–100%) is written each frame; the solid ink is revealed left→right. */
+}
+
+.line {
+  position: relative;
+  display: block;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: clamp(3.4rem, 15vw, 15rem);
+  line-height: 0.8;
+  letter-spacing: -0.02em;
+  white-space: nowrap; /* let it bleed off the right edge (overlay clips) */
+}
+
+/* Outline (un-inked) layer */
+.lineOutline {
+  -webkit-text-stroke: clamp(1px, 0.18vw, 2.5px) rgba(236, 227, 208, 0.5);
+  color: transparent;
+}
+
+/* Solid ink layer, wiped in by clip-path, with an off-register red misprint ghost */
+.lineFill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #f6f0e2;
+  -webkit-text-stroke: 0;
+  clip-path: inset(0 calc(100% - var(--fill, 0%)) 0 0);
+  text-shadow:
+    3px 3px 0 #b8935a,
+    6px 6px 0 rgba(53, 15, 15, 0.55),
+    -2px -1px 0 rgba(165, 53, 46, 0.55); /* the misregistered second-color plate */
+}
+
+/* --- giant folio number, cropped bottom-right like a printed page number --- */
+.folio {
+  position: absolute;
+  right: clamp(-0.5rem, -1vw, -1.5rem);
+  bottom: clamp(-2rem, -5vw, -5rem);
+  font-family: var(--font-display);
+  font-size: clamp(9rem, 34vw, 30rem);
+  line-height: 0.7;
+  letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-text-stroke: clamp(1px, 0.14vw, 2px) rgba(214, 171, 99, 0.4);
   pointer-events: none;
+  user-select: none;
 }
 
-.percent {
-  font-family: var(--font-condensed);
-  font-size: 1.1rem;
-  color: #b8935a;
-  vertical-align: super;
-  margin-left: 0.15em;
-  text-shadow: none;
-}
-
-.round {
-  margin-top: 0.55rem;
-  font-family: var(--font-condensed);
-  text-transform: uppercase;
-  letter-spacing: 0.5em;
-  font-size: 0.62rem;
-  color: rgba(236, 227, 208, 0.55);
-  padding-left: 0.5em;
-}
-
-.disciplines {
-  margin-top: 2rem;
-  font-family: var(--font-condensed);
-  text-transform: uppercase;
-  letter-spacing: 0.3em;
-  font-size: 0.68rem;
-  color: rgba(236, 227, 208, 0.6);
+/* --- bottom-left ledger line --- */
+.ledger {
+  position: absolute;
+  left: clamp(1.4rem, 5vw, 4rem);
+  bottom: clamp(1.4rem, 4vw, 3.2rem);
   display: flex;
   align-items: center;
-  gap: 0.85em;
+  gap: 0.9em;
+  font-family: var(--font-condensed);
+  text-transform: uppercase;
+  letter-spacing: 0.32em;
+  font-size: clamp(0.6rem, 0.85vw, 0.82rem);
+  color: rgba(236, 227, 208, 0.62);
 }
 
-.star {
+.dagger {
   color: #d6ab63;
-  font-size: 0.7em;
+  font-size: 0.9em;
 }
 
-/* Milestone impact ripple (triggered by GSAP at 25/50/75%) */
-.ripple {
+/* --- crest stamp, top-right, like an inked seal --- */
+.stamp {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: min(70vw, 420px);
-  height: min(70vw, 420px);
-  margin: calc(min(70vw, 420px) / -2) 0 0 calc(min(70vw, 420px) / -2);
-  border-radius: 50%;
-  border: 1px solid rgba(214, 171, 99, 0.5);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 1;
+  top: clamp(1.2rem, 3.5vw, 3rem);
+  right: clamp(1.2rem, 4vw, 3.4rem);
+  width: clamp(84px, 12vw, 150px);
+  height: auto;
+  opacity: 0.5;
+  transform: rotate(-7deg);
+  filter: sepia(0.4) brightness(0.9) contrast(1.05);
+  mix-blend-mode: screen;
 }
 
-/* Bone-white bloom for the climax */
+/* Paper-white snap at the reveal (very brief) */
 .flash {
   position: absolute;
   inset: 0;
+  z-index: 3;
   pointer-events: none;
   opacity: 0;
-  z-index: 3;
-  background: radial-gradient(60% 55% at 50% 44%, #fffaf0 0%, #f6f0e2 45%, rgba(246, 240, 226, 0) 78%);
-}
-
-/* Tap-to-ring fallback (shown only if the browser blocks cold autoplay) */
-.prompt {
-  position: absolute;
-  bottom: clamp(2rem, 8vh, 5rem);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 4;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6em;
-  border-radius: 999px;
-  background: #d6ab63;
-  color: #1a0e0c;
-  font-family: var(--font-condensed);
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 0.85rem 2rem;
-  border: none;
-  cursor: pointer;
-  opacity: 0;
-  animation: promptPulse 1.6s ease-in-out infinite;
-}
-
-@keyframes promptPulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(214, 171, 99, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 0 14px rgba(214, 171, 99, 0);
-  }
-}
-
-.prompt:hover {
   background: #f6f0e2;
+}
+
+@media (max-width: 640px) {
+  .kicker { max-width: 82vw; }
+  .stamp { opacity: 0.4; }
 }
