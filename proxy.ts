@@ -3,7 +3,9 @@ import { authConfig } from "@/auth.config";
 
 const { auth } = NextAuth(authConfig);
 
-const MEMBER_ROUTES = ["/profile", "/schedule", "/account"];
+// Note: /schedule is intentionally public (guests can view it; booking still
+// requires auth, enforced in the page + server actions).
+const MEMBER_ROUTES = ["/profile", "/account"];
 const ADMIN_ROUTES = ["/admin"];
 
 export default auth((req) => {
@@ -28,7 +30,6 @@ export default auth((req) => {
 export const config = {
   matcher: [
     "/profile/:path*",
-    "/schedule/:path*",
     "/account/:path*",
     "/admin/:path*",
   ],
