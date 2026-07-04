@@ -14,6 +14,28 @@ function Stars({ n }: { n: number }) {
   );
 }
 
+/* Presentational review body — reused by the visible card and the invisible
+   height-sizer so the box is always as tall as the *longest* review. */
+function ReviewBody({ r }: { r: Review }) {
+  return (
+    <div className="flex flex-col items-center text-center">
+      <Stars n={r.stars} />
+      <span className="font-condensed mt-1 text-xs tracking-widest text-cream/50 uppercase">
+        {r.stars}.0 · Verified Google review
+      </span>
+      <blockquote className="mt-6 text-lg leading-relaxed text-cream/90 sm:text-2xl">
+        &ldquo;{r.quote}&rdquo;
+      </blockquote>
+      <figcaption className="mt-7">
+        <div className="font-poster text-2xl text-bone">{r.name}</div>
+        <div className="font-condensed text-xs tracking-widest text-gold uppercase">
+          {r.tag}
+        </div>
+      </figcaption>
+    </div>
+  );
+}
+
 export function ReviewsCarousel({ reviews }: { reviews: Review[] }) {
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -35,31 +57,28 @@ export function ReviewsCarousel({ reviews }: { reviews: Review[] }) {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="relative min-h-[320px] overflow-hidden rounded-3xl border border-oxblood-600/50 bg-gradient-to-br from-oxblood/50 to-ink p-8 sm:min-h-[300px] sm:p-14">
-        <AnimatePresence mode="wait">
-          <motion.figure
-            key={i}
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -24 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-col items-center text-center"
-          >
-            <Stars n={r.stars} />
-            <span className="font-condensed mt-1 text-xs tracking-widest text-cream/50 uppercase">
-              {r.stars}.0 · Verified Google review
-            </span>
-            <blockquote className="mt-6 text-xl leading-relaxed text-cream/90 sm:text-2xl">
-              &ldquo;{r.quote}&rdquo;
-            </blockquote>
-            <figcaption className="mt-7">
-              <div className="font-poster text-2xl text-bone">{r.name}</div>
-              <div className="font-condensed text-xs tracking-widest text-gold uppercase">
-                {r.tag}
-              </div>
-            </figcaption>
-          </motion.figure>
-        </AnimatePresence>
+      <div className="relative grid overflow-hidden rounded-3xl border border-oxblood-600/50 bg-gradient-to-br from-oxblood/50 to-ink p-7 sm:p-14">
+        {/* Height sizer: every review stacked & hidden → cell grows to the tallest.
+            Keeps the box one constant size no matter which review is showing. */}
+        {reviews.map((rv, k) => (
+          <div key={k} aria-hidden className="invisible col-start-1 row-start-1">
+            <ReviewBody r={rv} />
+          </div>
+        ))}
+        {/* Visible, animated review — overlaid in the same grid cell, centered. */}
+        <div className="col-start-1 row-start-1 flex items-center justify-center">
+          <AnimatePresence mode="wait">
+            <motion.figure
+              key={i}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -24 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <ReviewBody r={r} />
+            </motion.figure>
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Arrows */}

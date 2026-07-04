@@ -5,7 +5,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { Hero } from "@/components/hero";
 import { ReviewsCarousel } from "@/components/reviews-carousel";
 import { StickyCta } from "@/components/sticky-cta";
-import { Reveal, SplitWords, Marquee, Parallax } from "@/components/motion";
+import { Reveal, SplitWords, Marquee } from "@/components/motion";
 import { STATS, CLASSES, COACHES, TESTIMONIALS, VALUE_PROPS, GYM, PRICING } from "@/lib/site";
 
 export default function Home() {
@@ -135,9 +135,11 @@ export default function Home() {
 
         {/* Big kinetic banner */}
         <section className="relative overflow-hidden border-y border-oxblood-600/50 bg-oxblood-900/50 py-24 sm:py-32">
-          <Parallax amount={80} className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.06]">
-            <span className="font-poster text-[28vw] whitespace-nowrap text-cream">GOLDEN HILL</span>
-          </Parallax>
+          <Marquee reverse speed={42} className="pointer-events-none absolute inset-0 items-center opacity-[0.07]">
+            <span className="font-poster text-[15vw] whitespace-nowrap text-cream">
+              Golden Hill Boxing Club <span className="px-6 text-gold">✦</span>
+            </span>
+          </Marquee>
           <div className="relative mx-auto max-w-4xl px-5 text-center sm:px-8">
             <h2 className="font-poster fluid-h2 text-bone">
               <SplitWords text="Your first round" />
@@ -274,17 +276,18 @@ export default function Home() {
           <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-16">
             {/* Real storefront photo, themed to match */}
             <Reveal className="order-2 lg:order-1">
-              <div className="relative overflow-hidden rounded-3xl border border-gold/25 shadow-2xl">
+              <div className="relative overflow-hidden rounded-3xl border border-gold/30 shadow-2xl">
                 <Image
                   src="/gym-exterior.jpg"
                   alt="Golden Hill Boxing Club storefront on Broadway Ave"
-                  width={591}
-                  height={1050}
-                  className="h-full max-h-[520px] w-full object-cover [filter:grayscale(0.45)_contrast(1.05)_brightness(0.92)]"
+                  width={1260}
+                  height={806}
+                  className="h-full w-full object-cover"
                 />
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink via-oxblood/30 to-transparent mix-blend-multiply" />
-                <div className="pointer-events-none absolute inset-0 bg-oxblood/25 mix-blend-color" />
-                <span className="font-condensed absolute bottom-4 left-4 rounded-full bg-ink/70 px-3 py-1 text-[10px] tracking-widest text-gold uppercase backdrop-blur">
+                {/* light warm bottom scrim — keeps it bright & inviting, badge stays legible */}
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-ink/70 via-ink/20 to-transparent" />
+                <div className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-gold/15" />
+                <span className="font-condensed absolute bottom-4 left-4 rounded-full bg-ink/75 px-3 py-1 text-[10px] tracking-widest text-gold uppercase backdrop-blur">
                   2302 Broadway Ave
                 </span>
               </div>
