@@ -25,11 +25,13 @@ function time(iso: string) {
 
 export function ScheduleBooking({
   days,
+  authed = true,
   prevWeek,
   nextWeek,
   rangeLabel,
 }: {
   days: Day[];
+  authed?: boolean;
   prevWeek: string;
   nextWeek: string;
   rangeLabel: string;
@@ -54,6 +56,22 @@ export function ScheduleBooking({
 
   return (
     <>
+      {!authed && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gold/30 bg-gold/5 px-5 py-4">
+          <p className="text-cream/80">
+            You&apos;re viewing the schedule as a guest — log in or join to book a class.
+          </p>
+          <div className="flex shrink-0 gap-3">
+            <Link href="/login" className="font-condensed rounded-full border border-cream/30 px-5 py-2 text-xs font-semibold tracking-widest text-cream uppercase transition-colors hover:border-gold hover:text-gold">
+              Log in
+            </Link>
+            <Link href="/join" className="font-condensed rounded-full bg-gold px-5 py-2 text-xs font-semibold tracking-widest text-ink uppercase transition-colors hover:bg-bone">
+              Join
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Week nav */}
       <div className="mb-8 flex items-center justify-between rounded-2xl border border-oxblood-600/50 bg-oxblood/30 px-4 py-3">
         <Link href={`/schedule?week=${prevWeek}`} className="flex size-10 items-center justify-center rounded-full text-cream/70 transition-colors hover:bg-oxblood hover:text-gold" aria-label="Previous week">‹</Link>
@@ -96,6 +114,17 @@ export function ScheduleBooking({
                         <span className="font-condensed block rounded-full bg-bronze/20 py-2 text-center text-sm tracking-widest text-bronze uppercase">On waitlist</span>
                       ) : c.started ? (
                         <span className="font-condensed block rounded-full bg-ink/60 py-2 text-center text-sm tracking-widest text-cream/30 uppercase">Ended</span>
+                      ) : !authed ? (
+                        <Link
+                          href="/login"
+                          className={`font-condensed block w-full rounded-full py-2 text-center text-sm tracking-widest uppercase transition-colors ${
+                            c.openSlots === 0
+                              ? "border border-bronze/50 text-bronze hover:bg-bronze/10"
+                              : "bg-gold text-ink hover:bg-bone"
+                          }`}
+                        >
+                          {c.openSlots === 0 ? "Join waitlist" : "Book class"}
+                        </Link>
                       ) : (
                         <button
                           type="button"

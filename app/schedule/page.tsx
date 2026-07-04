@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS } from "@/lib/constants";
@@ -18,22 +17,24 @@ export default async function SchedulePage({
 }: {
   searchParams: Promise<{ week?: string }>;
 }) {
+  // Anyone can view the schedule; booking still requires an account.
   const session = await auth();
-  if (!session?.user?.id) redirect("/login");
-  const userId = session.user.id;
+  const userId = session?.user?.id ?? null;
 
   const { week } = await searchParams;
   const weekStart = parseWeekParam(week);
   const sessions = await getWeekSessions(weekStart);
 
-  const mine = await prisma.booking.findMany({
-    where: {
-      userId,
-      status: { in: [BOOKING_STATUS.BOOKED, BOOKING_STATUS.WAITLIST] },
-      sessionId: { in: sessions.map((s) => s.id) },
-    },
-    select: { sessionId: true, status: true },
-  });
+  const mine = userId
+    ? await prisma.booking.findMany({
+        where: {
+          userId,
+          status: { in: [BOOKING_STATUS.BOOKED, BOOKING_STATUS.WAITLIST] },
+          sessionId: { in: sessions.map((s) => s.id) },
+        },
+        select: { sessionId: true, status: true },
+      })
+    : [];
   const booked = new Set(mine.filter((b) => b.status === BOOKING_STATUS.BOOKED).map((b) => b.sessionId));
   const waitlisted = new Set(mine.filter((b) => b.status === BOOKING_STATUS.WAITLIST).map((b) => b.sessionId));
 
@@ -67,7 +68,7 @@ export default async function SchedulePage({
         <p className="font-condensed mb-2 text-sm tracking-[0.35em] text-gold uppercase">Book a class</p>
         <h1 className="font-poster fluid-h2 mb-10 text-bone">The Schedule</h1>
 
-        <ScheduleBooking days={days} prevWeek={weekParam(addDays(weekStart, -7))} nextWeek={weekParam(addDays(weekStart, 7))} rangeLabel={rangeLabel} />
+        <ScheduleBooking days={days} authed={!!userId} prevWeek={weekParam(addDays(weekStart, -7))} nextWeek={weekParam(addDays(weekStart, 7))} rangeLabel={rangeLabel} />
 
         {/* Personal training */}
         <div className="mt-16 flex flex-col items-start justify-between gap-6 rounded-3xl border border-gold/30 bg-gradient-to-br from-oxblood/50 to-ink p-8 sm:flex-row sm:items-center">
