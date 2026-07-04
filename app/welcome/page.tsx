@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { Reveal, SplitWords, Magnetic } from "@/components/motion";
+import { Reveal, SplitWords } from "@/components/motion";
 
 export const dynamic = "force-dynamic";
 
@@ -26,14 +26,12 @@ export default async function WelcomePage() {
           session — now let&apos;s get you booked.
         </Reveal>
         <Reveal delay={0.6} className="mt-10 flex flex-wrap justify-center gap-4">
-          <Magnetic strength={0.3}>
-            <Link
-              href="/schedule"
-              className="font-condensed inline-block rounded-full bg-gold px-10 py-4 text-base font-semibold tracking-widest text-ink uppercase transition-colors hover:bg-bone"
-            >
-              Book Your First Class
-            </Link>
-          </Magnetic>
+          <Link
+            href="/schedule"
+            className="font-condensed inline-block rounded-full bg-gold px-10 py-4 text-base font-semibold tracking-widest text-ink uppercase transition-transform transition-colors hover:scale-[1.03] hover:bg-bone"
+          >
+            Book Your First Class
+          </Link>
           <Link
             href="/profile"
             className="font-condensed inline-block rounded-full border border-cream/40 px-10 py-4 text-base font-semibold tracking-widest text-cream uppercase transition-colors hover:border-gold hover:text-gold"

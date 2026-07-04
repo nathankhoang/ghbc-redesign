@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { CLASSES } from "@/lib/site";
-import { Magnetic } from "@/components/motion";
 
 const field =
   "w-full rounded-xl border border-oxblood-600/60 bg-ink/60 px-4 py-3.5 text-cream placeholder:text-cream/35 focus:border-gold focus:outline-none";
@@ -43,14 +42,12 @@ export function FreeClassForm() {
           </option>
         ))}
       </select>
-      <Magnetic strength={0.2} className="mt-2 w-full">
-        <button
-          type="submit"
-          className="font-condensed w-full rounded-full bg-gold py-4 text-base font-semibold tracking-widest text-ink uppercase transition-colors hover:bg-bone"
-        >
-          Claim My Free Class
-        </button>
-      </Magnetic>
+      <button
+        type="submit"
+        className="font-condensed mt-2 w-full rounded-full bg-gold py-4 text-base font-semibold tracking-widest text-ink uppercase transition-colors hover:bg-bone"
+      >
+        Claim My Free Class
+      </button>
       <p className="mt-1 text-center text-xs text-cream/40">
         No card required. No commitment. Just come train.
       </p>

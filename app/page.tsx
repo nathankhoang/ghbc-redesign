@@ -1,8 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Hero } from "@/components/hero";
-import { Reveal, SplitWords, Marquee, Magnetic, Parallax } from "@/components/motion";
+import { ReviewsCarousel } from "@/components/reviews-carousel";
+import { StickyCta } from "@/components/sticky-cta";
+import { Reveal, SplitWords, Marquee, Parallax } from "@/components/motion";
 import { STATS, CLASSES, COACHES, TESTIMONIALS, VALUE_PROPS, GYM, PRICING } from "@/lib/site";
 
 export default function Home() {
@@ -50,7 +53,10 @@ export default function Home() {
               <div className="mt-12 grid grid-cols-2 gap-8 sm:grid-cols-4">
                 {STATS.map((s, i) => (
                   <Reveal key={s.label} delay={i * 0.08}>
-                    <div className="font-poster text-5xl text-gold sm:text-6xl">{s.value}</div>
+                    <div className="flex items-start gap-0.5">
+                      <span className="font-poster text-5xl text-gold sm:text-6xl">{s.value}</span>
+                      {s.star && <span className="mt-1 text-2xl text-gold sm:mt-2">★</span>}
+                    </div>
                     <div className="font-condensed mt-1 text-xs tracking-widest text-cream/60 uppercase">
                       {s.label}
                     </div>
@@ -113,6 +119,18 @@ export default function Home() {
               </Reveal>
             ))}
           </div>
+
+          <Reveal className="mt-10 flex flex-wrap items-center justify-center gap-4 text-center">
+            <span className="font-condensed tracking-wide text-cream/70">
+              Not sure where to start? Your first class is free.
+            </span>
+            <Link
+              href="/free-class"
+              className="font-condensed rounded-full border border-gold px-6 py-2.5 text-sm font-semibold tracking-widest text-gold uppercase transition-colors hover:bg-gold hover:text-ink"
+            >
+              Book a free class →
+            </Link>
+          </Reveal>
         </section>
 
         {/* Big kinetic banner */}
@@ -130,14 +148,15 @@ export default function Home() {
               No pressure, no contract. Come throw hands, see how it feels.
             </Reveal>
             <Reveal delay={0.5} className="mt-9">
-              <Magnetic strength={0.3}>
-                <Link
-                  href="/free-class"
-                  className="font-condensed inline-block rounded-full bg-gold px-10 py-4 text-base font-semibold tracking-widest text-ink uppercase transition-colors hover:bg-bone"
-                >
-                  Claim Your Free Class
-                </Link>
-              </Magnetic>
+              <Link
+                href="/free-class"
+                className="font-condensed inline-block rounded-full bg-gold px-10 py-4 text-base font-semibold tracking-widest text-ink uppercase transition-transform transition-colors hover:scale-[1.03] hover:bg-bone"
+              >
+                Claim Your Free Class
+              </Link>
+              <p className="font-condensed mt-4 text-xs tracking-widest text-cream/45 uppercase">
+                No card required · no contract
+              </p>
             </Reveal>
           </div>
         </section>
@@ -150,19 +169,28 @@ export default function Home() {
           <h2 className="font-poster fluid-h2 mb-14 text-bone">
             <SplitWords text="The Coaches" />
           </h2>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-3">
             {COACHES.map((coach, i) => (
               <Reveal key={coach.name} delay={(i % 3) * 0.08}>
-                <div className="flex items-center gap-5 rounded-2xl border border-oxblood-600/50 bg-oxblood/40 p-6 transition-colors hover:border-gold/50">
-                  <span className="font-poster flex size-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-gold to-bronze text-2xl text-ink">
-                    {coach.name.replace("Coach ", "").charAt(0)}
-                  </span>
-                  <div>
-                    <div className="font-poster text-2xl text-bone">{coach.name}</div>
-                    <div className="font-condensed text-xs tracking-widest text-gold uppercase">
+                <div className="group overflow-hidden rounded-2xl border border-oxblood-600/50 bg-oxblood/30 transition-colors hover:border-gold/50">
+                  <div className="relative aspect-[4/5] w-full bg-gradient-to-br from-oxblood-600/60 to-ink">
+                    {coach.image ? (
+                      <Image src={coach.image} alt={coach.name} fill className="object-cover" />
+                    ) : (
+                      <div className="flex h-full flex-col items-center justify-center gap-2 text-bronze/40">
+                        <svg width="52" height="52" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                          <circle cx="12" cy="8" r="4.2" />
+                          <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z" />
+                        </svg>
+                        <span className="font-condensed text-[10px] tracking-widest uppercase">Photo coming soon</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4 text-center sm:p-5">
+                    <div className="font-poster text-xl text-bone sm:text-2xl">{coach.name}</div>
+                    <div className="font-condensed mt-1 text-[11px] tracking-widest text-gold uppercase">
                       {coach.specialty}
                     </div>
-                    <div className="mt-1 text-sm text-cream/60">{coach.note}</div>
                   </div>
                 </div>
               </Reveal>
@@ -187,10 +215,20 @@ export default function Home() {
                 first month · then ${PRICING.FULL.recurringCents / 100}/mo · no contract
               </p>
             </Reveal>
-            <Reveal delay={0.35} className="mx-auto mt-10 grid max-w-md gap-3 text-left">
-              {["Unlimited access", "All group classes", "Open gym", "Cancel anytime"].map((b) => (
+            <Reveal
+              delay={0.35}
+              className="mx-auto mt-10 grid w-fit grid-cols-1 gap-x-10 gap-y-3.5 text-left sm:grid-cols-2"
+            >
+              {[
+                "Unlimited group classes",
+                "Professional coaching",
+                "Open gym — bags, ropes & the ring",
+                "Boxing · Muay Thai · Yoga",
+                "Beginners always welcome",
+                "No contract — cancel anytime",
+              ].map((b) => (
                 <div key={b} className="flex items-center gap-3 text-cream/85">
-                  <span className="flex size-6 items-center justify-center rounded-full bg-gold/20 text-gold">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-gold/20 text-gold">
                     ✓
                   </span>
                   {b}
@@ -198,14 +236,12 @@ export default function Home() {
               ))}
             </Reveal>
             <Reveal delay={0.5} className="mt-11 flex flex-wrap justify-center gap-4">
-              <Magnetic strength={0.3}>
-                <Link
-                  href="/join"
-                  className="font-condensed inline-block rounded-full bg-gold px-10 py-4 text-base font-semibold tracking-widest text-ink uppercase transition-colors hover:bg-bone"
-                >
-                  Join in one tap
-                </Link>
-              </Magnetic>
+              <Link
+                href="/join"
+                className="font-condensed inline-block rounded-full bg-gold px-10 py-4 text-base font-semibold tracking-widest text-ink uppercase transition-transform transition-colors hover:scale-[1.03] hover:bg-bone"
+              >
+                Join in one tap
+              </Link>
               <Link
                 href="/free-class"
                 className="font-condensed inline-block rounded-full border border-cream/40 px-10 py-4 text-base font-semibold tracking-widest text-cream uppercase transition-colors hover:border-gold hover:text-gold"
@@ -213,62 +249,82 @@ export default function Home() {
                 Or try a free class
               </Link>
             </Reveal>
+            <Reveal delay={0.6} className="font-condensed mt-5 text-xs tracking-widest text-cream/45 uppercase">
+              Free first class · no contract · cancel anytime
+            </Reveal>
           </div>
         </section>
 
         {/* Testimonials */}
         <section className="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-32">
-          <h2 className="font-poster fluid-h2 mb-14 text-bone">
-            <SplitWords text="Word from" />{" "}
-            <span className="font-serif text-gold normal-case italic">the crew</span>
-          </h2>
-          <div className="grid gap-5 lg:grid-cols-3">
-            {TESTIMONIALS.map((t, i) => (
-              <Reveal key={t.name} delay={i * 0.1}>
-                <figure className="flex h-full flex-col rounded-2xl border border-oxblood-600/50 bg-oxblood/40 p-8">
-                  <span className="font-serif mb-4 text-5xl leading-none text-gold">“</span>
-                  <blockquote className="flex-1 text-lg text-cream/85">{t.quote}</blockquote>
-                  <figcaption className="mt-6">
-                    <div className="font-condensed tracking-wide text-bone">{t.name}</div>
-                    <div className="text-sm text-cream/50">{t.tag}</div>
-                  </figcaption>
-                </figure>
-              </Reveal>
-            ))}
+          <div className="mb-12 text-center">
+            <Reveal className="font-condensed mb-3 text-sm tracking-[0.35em] text-bronze uppercase">
+              5.0 on Google · loved in Golden Hill
+            </Reveal>
+            <h2 className="font-poster fluid-h2 text-bone">
+              <SplitWords text="Word from" />{" "}
+              <span className="font-serif text-gold normal-case italic">the crew</span>
+            </h2>
           </div>
+          <ReviewsCarousel reviews={TESTIMONIALS} />
         </section>
 
         {/* Location / final CTA */}
-        <section className="relative overflow-hidden border-t border-oxblood-600/50 bg-gradient-to-b from-oxblood/60 to-ink py-24 text-center sm:py-32">
-          <div className="mx-auto max-w-3xl px-5 sm:px-8">
-            <Reveal className="font-condensed mb-3 text-sm tracking-[0.35em] text-bronze uppercase">
-              Find us
+        <section className="relative overflow-hidden border-t border-oxblood-600/50 bg-gradient-to-b from-oxblood/60 to-ink py-24 sm:py-32">
+          <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-16">
+            {/* Real storefront photo, themed to match */}
+            <Reveal className="order-2 lg:order-1">
+              <div className="relative overflow-hidden rounded-3xl border border-gold/25 shadow-2xl">
+                <Image
+                  src="/gym-exterior.jpg"
+                  alt="Golden Hill Boxing Club storefront on Broadway Ave"
+                  width={591}
+                  height={1050}
+                  className="h-full max-h-[520px] w-full object-cover [filter:grayscale(0.45)_contrast(1.05)_brightness(0.92)]"
+                />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink via-oxblood/30 to-transparent mix-blend-multiply" />
+                <div className="pointer-events-none absolute inset-0 bg-oxblood/25 mix-blend-color" />
+                <span className="font-condensed absolute bottom-4 left-4 rounded-full bg-ink/70 px-3 py-1 text-[10px] tracking-widest text-gold uppercase backdrop-blur">
+                  2302 Broadway Ave
+                </span>
+              </div>
             </Reveal>
-            <h2 className="font-poster fluid-h2 text-bone">
-              <SplitWords text="Come Say Hi" />
-            </h2>
-            <Reveal delay={0.25} className="mt-6 text-xl text-cream/80">
-              {GYM.address}
-            </Reveal>
-            <Reveal delay={0.35} className="font-condensed mt-2 tracking-wide text-cream/60">
-              {GYM.phone} · {GYM.instagram}
-            </Reveal>
-            <Reveal delay={0.5} className="mt-10">
-              <Magnetic strength={0.3}>
+
+            <div className="order-1 lg:order-2">
+              <Reveal className="font-condensed mb-3 text-sm tracking-[0.35em] text-bronze uppercase">
+                Find us
+              </Reveal>
+              <h2 className="font-poster fluid-h2 text-bone">
+                <SplitWords text="Come Say Hi" />
+              </h2>
+              <Reveal delay={0.25} className="mt-6 text-xl text-cream/80">
+                {GYM.address}
+              </Reveal>
+              <Reveal delay={0.35} className="font-condensed mt-2 tracking-wide text-cream/60">
+                {GYM.phone} · {GYM.instagram}
+              </Reveal>
+              <Reveal delay={0.5} className="mt-9 flex flex-wrap gap-4">
                 <a
                   href="https://maps.google.com/?q=2302+Broadway+Ave+San+Diego+CA"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-condensed inline-block rounded-full border border-gold px-10 py-4 text-base font-semibold tracking-widest text-gold uppercase transition-colors hover:bg-gold hover:text-ink"
+                  className="font-condensed inline-block rounded-full border border-gold px-8 py-3.5 text-base font-semibold tracking-widest text-gold uppercase transition-colors hover:bg-gold hover:text-ink"
                 >
                   Get Directions
                 </a>
-              </Magnetic>
-            </Reveal>
+                <Link
+                  href="/free-class"
+                  className="font-condensed inline-block rounded-full bg-gold px-8 py-3.5 text-base font-semibold tracking-widest text-ink uppercase transition-transform transition-colors hover:scale-[1.03] hover:bg-bone"
+                >
+                  Book a free class
+                </Link>
+              </Reveal>
+            </div>
           </div>
         </section>
       </main>
       <SiteFooter />
+      <StickyCta />
     </>
   );
 }

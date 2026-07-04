@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { SplitWords, Reveal, Magnetic } from "@/components/motion";
+import { SplitWords, Reveal } from "@/components/motion";
 
 export function Hero() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -58,14 +58,12 @@ export function Hero() {
         </Reveal>
 
         <Reveal delay={0.7} className="mt-9 flex flex-wrap items-center gap-4">
-          <Magnetic strength={0.3}>
-            <Link
-              href="/free-class"
-              className="font-condensed inline-block rounded-full bg-gold px-9 py-4 text-base font-semibold tracking-widest text-ink uppercase transition-colors hover:bg-bone"
-            >
-              Book Your Free Class
-            </Link>
-          </Magnetic>
+          <Link
+            href="/free-class"
+            className="font-condensed inline-block rounded-full bg-gold px-9 py-4 text-base font-semibold tracking-widest text-ink uppercase transition-transform transition-colors hover:scale-[1.03] hover:bg-bone"
+          >
+            Book Your Free Class
+          </Link>
           <Link
             href="/join"
             className="font-condensed inline-block rounded-full border border-cream/40 px-9 py-4 text-base font-semibold tracking-widest text-cream uppercase transition-colors hover:border-gold hover:text-gold"

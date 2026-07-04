@@ -10,10 +10,10 @@ export const NAV = [
   { label: "Pricing", href: "#pricing" },
 ];
 
-export const STATS = [
+export const STATS: { value: string; label: string; star?: boolean }[] = [
   { value: "6", label: "Expert coaches" },
   { value: "30+", label: "Classes / week" },
-  { value: "3", label: "Disciplines" },
+  { value: "5.0", label: "Google rating", star: true },
   { value: "0", label: "Contracts" },
 ];
 
@@ -48,32 +48,53 @@ export const CLASSES = [
   },
 ];
 
-export const COACHES = [
-  { name: "Coach Ali", specialty: "Boxing", note: "Fundamentals & fight IQ." },
-  { name: "Coach Colton", specialty: "Boxing · Muay Thai", note: "Technical striking." },
-  { name: "Coach Derek", specialty: "Boxing · Muay Thai", note: "Power & conditioning." },
-  { name: "Coach Jack", specialty: "Boxing · Muay Thai", note: "Sparring & drills." },
-  { name: "Emily", specialty: "Yoga", note: "Mobility & recovery." },
+// `image` points at a headshot in /public/coaches/ when available; empty = themed
+// filler placeholder that's sized for a real photo to drop in later.
+export const COACHES: { name: string; specialty: string; image?: string }[] = [
+  { name: "Coach Ali", specialty: "Boxing" },
+  { name: "Coach Colton", specialty: "Boxing · Muay Thai" },
+  { name: "Coach Derek", specialty: "Boxing · Muay Thai" },
+  { name: "Coach Jack", specialty: "Boxing · Muay Thai" },
+  { name: "Coach Kyle", specialty: "Boxing · Muay Thai" },
+  { name: "Emily", specialty: "Yoga" },
 ];
 
-export const TESTIMONIALS = [
+// Real 5★ reviews from the gym's Google listing (5.0 · 12 reviews).
+export const TESTIMONIALS: { quote: string; name: string; tag: string; stars: number }[] = [
   {
     quote:
-      "Walked in never having thrown a punch. The coaches met me where I was — now I train five days a week.",
-    name: "Marcus T.",
-    tag: "Member, 8 months",
+      "More than just a great workout! The boxing and Muay Thai classes have a great balance of technical work and conditioning. All of the coaches are super knowledgeable and welcoming, and meet you wherever you're at.",
+    name: "Randi Lyn",
+    tag: "Google review",
+    stars: 5,
   },
   {
     quote:
-      "Best gym in San Diego. Real coaching, real people, zero ego. The vibe is unmatched.",
-    name: "Dana R.",
-    tag: "Member, 1 year",
+      "Awesome gym!! Knowledgeable, helpful coaches and friendly clientele. Great for all skill levels. Extremely affordable. The space looks small at first glance, but once you take a class you see it totally works. I love this place!",
+    name: "Steven Clemensen",
+    tag: "Google review",
+    stars: 5,
   },
   {
     quote:
-      "First class was free and I was hooked. No contract meant no excuses. Wish I'd started sooner.",
-    name: "Leo M.",
-    tag: "Member, 4 months",
+      "Great gym for both beginners and experienced individuals. The coaches are very knowledgeable and encouraging. Truly an awesome place.",
+    name: "Carlo Bencomo-Jasso",
+    tag: "Google review",
+    stars: 5,
+  },
+  {
+    quote:
+      "New local gem. The coaches are great and the classes aren't so big that you feel like just a number.",
+    name: "ryan lawless",
+    tag: "Google review",
+    stars: 5,
+  },
+  {
+    quote:
+      "Great gym, great coaches — a great place for both beginners and experienced individuals.",
+    name: "Robin Nguyễn",
+    tag: "Google review",
+    stars: 5,
   },
 ];
 

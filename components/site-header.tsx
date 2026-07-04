@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { NAV } from "@/lib/site";
-import { Magnetic } from "@/components/motion";
 
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
@@ -56,14 +55,12 @@ export function SiteHeader() {
           >
             Log in
           </Link>
-          <Magnetic strength={0.4}>
-            <Link
-              href="/join"
-              className="font-condensed inline-block rounded-full bg-gold px-6 py-2.5 text-sm font-semibold tracking-widest text-ink uppercase transition-colors hover:bg-bone"
-            >
-              Join
-            </Link>
-          </Magnetic>
+          <Link
+            href="/join"
+            className="font-condensed inline-block rounded-full bg-gold px-6 py-2.5 text-sm font-semibold tracking-widest text-ink uppercase transition-transform transition-colors hover:scale-[1.05] hover:bg-bone"
+          >
+            Join
+          </Link>
           <button
             type="button"
             className="text-cream md:hidden"
