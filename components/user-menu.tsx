@@ -44,6 +44,9 @@ export function UserMenu({ firstName, email }: { firstName: string; email: strin
           <Link href="/schedule" onClick={() => setOpen(false)} className="block px-4 py-2 text-cream/80 hover:bg-oxblood/40 hover:text-gold">
             Book a class
           </Link>
+          <Link href="/account" onClick={() => setOpen(false)} className="block px-4 py-2 text-cream/80 hover:bg-oxblood/40 hover:text-gold">
+            Account settings
+          </Link>
           <form action={logout}>
             <button type="submit" className="w-full px-4 py-2 text-left text-blood hover:bg-oxblood/40">
               Log out

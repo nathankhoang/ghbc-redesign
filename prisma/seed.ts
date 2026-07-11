@@ -64,7 +64,25 @@ const SLOTS: Slot[] = [
   { day: 6, type: YOGA, coach: "Emily", start: t(12), end: t(12, 45), cap: 8 },
 ];
 
-const COACH_NAMES = ["Coach Ali", "Coach Colton", "Coach Derek", "Coach Jack", "Emily", "Coach"];
+// Named coaches get a COACH-role login (so they get their own dashboard). The
+// generic "Coach" placeholder stays display-only. Email = first name; shared
+// default password `coachpass123` (change before handing accounts to real
+// coaches — consider a forced reset on first login).
+type CoachSeed = { name: string; login: boolean; bio?: string };
+const COACH_SEEDS: CoachSeed[] = [
+  { name: "Coach Ali", login: true, bio: "Head boxing coach. Sharp fundamentals, relentless conditioning — Ali will have you moving like a fighter from day one." },
+  { name: "Coach Colton", login: true, bio: "Boxing and Muay Thai. Technical, patient, and tough when it counts. Runs our sparring and drills." },
+  { name: "Coach Derek", login: true, bio: "Boxing and Muay Thai coach who meets you where you're at and pushes from there." },
+  { name: "Coach Jack", login: true, bio: "Boxing and Muay Thai. Big on footwork, timing, and the little details that win rounds." },
+  { name: "Emily", login: true, bio: "Yoga and recovery. Mobility, breath, and the counter to the heavy bag — good for every training day." },
+  { name: "Coach", login: false },
+];
+
+// "Coach Ali" -> "ali@goldenhillboxingclub.com"
+function coachEmail(name: string): string {
+  const first = name.replace(/^Coach\s+/i, "").split(" ")[0].toLowerCase();
+  return `${first}@goldenhillboxingclub.com`;
+}
 
 async function main() {
   // Clear class data so the seed is fully authoritative (removes stale sessions
@@ -74,12 +92,30 @@ async function main() {
   await prisma.classTemplate.deleteMany();
   await prisma.coach.deleteMany();
 
-  // Coaches
+  // Coaches — named ones get a linked COACH login account + bio.
   const coaches: Record<string, string> = {};
-  for (const name of COACH_NAMES) {
-    const existing = await prisma.coach.findFirst({ where: { name } });
-    const c = existing ?? (await prisma.coach.create({ data: { name } }));
-    coaches[name] = c.id;
+  for (const seed of COACH_SEEDS) {
+    let userId: string | undefined;
+    if (seed.login) {
+      const email = coachEmail(seed.name);
+      const user = await prisma.user.upsert({
+        where: { email },
+        update: { role: ROLES.COACH },
+        create: {
+          firstName: seed.name.replace(/^Coach\s+/i, "").split(" ")[0],
+          lastName: "",
+          email,
+          passwordHash: await bcrypt.hash("coachpass123", 10),
+          role: ROLES.COACH,
+          membershipType: MEMBERSHIP.NONE,
+        },
+      });
+      userId = user.id;
+    }
+    const c = await prisma.coach.create({
+      data: { name: seed.name, bio: seed.bio ?? null, userId: userId ?? null },
+    });
+    coaches[seed.name] = c.id;
   }
 
   // Class templates — reset to keep the seed authoritative
@@ -126,7 +162,7 @@ async function main() {
   });
 
   console.log(
-    `Seeded ${COACH_NAMES.length} coaches, ${SLOTS.length} class templates, owner + demo member.`,
+    `Seeded ${COACH_SEEDS.length} coaches (${COACH_SEEDS.filter((c) => c.login).length} with logins), ${SLOTS.length} class templates, owner + demo member.`,
   );
 }
 

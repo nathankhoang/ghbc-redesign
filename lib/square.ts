@@ -24,6 +24,7 @@ export type PaymentResult = {
 const paymentsEnabled = process.env.PAYMENTS_ENABLED === "true";
 
 export function introChargeCents(membershipType: string): number {
+  if (membershipType === MEMBERSHIP.TRIAL) return PRICING.TRIAL.introCents;
   return membershipType === MEMBERSHIP.YOGA
     ? PRICING.YOGA.introCents
     : PRICING.FULL.introCents;
@@ -47,6 +48,26 @@ export async function createSubscription(
   //      Payments.create for the intro charge
   //   3. Subscriptions.create({ locationId, planVariationId, customerId, cardId })
   // Return the resulting Square customer id.
+  return {
+    ok: false,
+    error: "Live payments are enabled but not yet implemented.",
+  };
+}
+
+// One-time $20 trial charge (no subscription). Stubbed alongside
+// createSubscription — a TRIAL is a single-class drop-in, not a membership.
+export async function createTrialCharge(
+  input: PaymentInput,
+): Promise<PaymentResult> {
+  if (!paymentsEnabled) {
+    return { ok: true, customerId: `stub_${Date.now()}` };
+  }
+
+  if (!input.paymentToken) {
+    return { ok: false, error: "Missing payment details." };
+  }
+
+  // TODO: real Square Payments.create for a single $20 charge (no plan).
   return {
     ok: false,
     error: "Live payments are enabled but not yet implemented.",

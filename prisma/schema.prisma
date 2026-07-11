@@ -17,21 +17,41 @@ model User {
   firstName          String
   lastName           String
   email              String    @unique
+  phone              String?
+  image              String?   // avatar URL (Vercel Blob)
   passwordHash       String
-  role               String    @default("MEMBER") // MEMBER | OWNER
-  membershipType     String    @default("FULL")   // FULL | YOGA | NONE
+  role               String    @default("MEMBER") // MEMBER | COACH | OWNER
+  membershipType     String    @default("FULL")   // FULL | YOGA | TRIAL | NONE
   squareCustomerId   String?
   subscriptionStatus String    @default("active")  // active | past_due | cancelled
   classesGoal        Int       @default(100)
   createdAt          DateTime  @default(now())
   bookings           Booking[]
+  coach              Coach?    // set when this account is a coach's login
+  resetTokens        PasswordResetToken[]
+}
+
+// Single-use password-reset tokens (the raw token is emailed; only its hash is
+// stored). Expired/used rows are deleted on use.
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
 
 model Coach {
-  id        String          @id @default(cuid())
-  name      String
-  templates ClassTemplate[]
-  sessions  ClassSession[]
+  id          String          @id @default(cuid())
+  name        String
+  bio         String?
+  // Optional login account (role COACH). Coaches without a login are display-only.
+  user        User?           @relation(fields: [userId], references: [id])
+  userId      String?         @unique
+  templates   ClassTemplate[]
+  sessions    ClassSession[]  @relation("SessionCoach")
+  subSessions ClassSession[]  @relation("SubCoach")
 }
 
 // Recurring weekly slot — the source the visible week is generated from.
@@ -55,8 +75,14 @@ model ClassSession {
   template   ClassTemplate? @relation(fields: [templateId], references: [id])
   templateId String?
   classType  String
-  coach      Coach?         @relation(fields: [coachId], references: [id])
+  coach      Coach?         @relation("SessionCoach", fields: [coachId], references: [id])
   coachId    String?
+  // Substitute coach covering this one session. Set by a coach from their
+  // dashboard; overlays the scheduled coach and is NEVER touched by session
+  // regeneration (ensureSessionsForWeek's update path leaves it alone), so a
+  // cover survives re-viewing the week.
+  subCoach   Coach?         @relation("SubCoach", fields: [subCoachId], references: [id])
+  subCoachId String?
   startAt    DateTime
   endAt      DateTime
   capacity   Int            @default(10)

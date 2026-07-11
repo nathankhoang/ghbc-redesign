@@ -1,11 +1,20 @@
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { BOOKING_STATUS } from "@/lib/constants";
+import { BOOKING_STATUS, MEMBERSHIP } from "@/lib/constants";
 import { getWeekStart } from "@/lib/schedule";
 import { AppHeader } from "@/components/app-header";
 import { MyClasses, type Item } from "@/components/my-classes";
+import { ClassReminderPopup, type NextClass } from "@/components/class-reminder-popup";
+
+const MEMBERSHIP_LABEL: Record<string, string> = {
+  [MEMBERSHIP.FULL]: "Full member",
+  [MEMBERSHIP.YOGA]: "Yoga member",
+  [MEMBERSHIP.TRIAL]: "Trial pass",
+  [MEMBERSHIP.NONE]: "Guest",
+};
 
 export const dynamic = "force-dynamic";
 
@@ -57,20 +66,46 @@ export default async function ProfilePage() {
   const next = MILESTONES.find((m) => m.n > total) ?? MILESTONES[MILESTONES.length - 1];
   const pct = Math.min(100, (total / next.n) * 100);
 
+  // Next upcoming class → the reminder popup.
+  const firstUpcoming = bookings.find((b) => b.session.startAt >= now);
+  const nextClass: NextClass = firstUpcoming
+    ? {
+        classType: firstUpcoming.session.classType,
+        whenLabel: firstUpcoming.session.startAt.toLocaleString("en-US", {
+          weekday: "long",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        }),
+      }
+    : null;
+
   return (
     <>
+      <ClassReminderPopup firstName={user.firstName} nextClass={nextClass} />
       <AppHeader />
       <main className="mx-auto max-w-5xl px-5 py-12 sm:px-8">
         {/* Welcome */}
         <div className="mb-8 flex flex-wrap items-center justify-between gap-6 rounded-3xl border border-oxblood-600/50 bg-gradient-to-r from-oxblood/60 to-ink p-7 sm:p-9">
           <div className="flex items-center gap-5">
-            <span className="font-poster flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-gold to-bronze text-3xl text-ink">
-              {user.firstName.charAt(0).toUpperCase()}
-            </span>
+            {user.image ? (
+              <Image
+                src={user.image}
+                alt={user.firstName}
+                width={64}
+                height={64}
+                className="size-16 rounded-full object-cover"
+              />
+            ) : (
+              <span className="font-poster flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-gold to-bronze text-3xl text-ink">
+                {user.firstName.charAt(0).toUpperCase()}
+              </span>
+            )}
             <div>
               <h1 className="font-poster text-4xl text-bone">Welcome back, {user.firstName}</h1>
               <p className="font-condensed tracking-widest text-gold uppercase">
-                {user.membershipType === "YOGA" ? "Yoga" : "Full"} member · Active
+                {MEMBERSHIP_LABEL[user.membershipType] ?? "Member"} · Active
               </p>
             </div>
           </div>

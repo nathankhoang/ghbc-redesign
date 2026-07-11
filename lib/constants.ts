@@ -1,9 +1,14 @@
 // Centralised domain constants (SQLite has no enums, so allowed values live here).
 
-export const ROLES = { MEMBER: "MEMBER", OWNER: "OWNER" } as const;
+export const ROLES = { MEMBER: "MEMBER", COACH: "COACH", OWNER: "OWNER" } as const;
 export type Role = (typeof ROLES)[keyof typeof ROLES];
 
-export const MEMBERSHIP = { FULL: "FULL", YOGA: "YOGA", NONE: "NONE" } as const;
+export const MEMBERSHIP = {
+  FULL: "FULL",
+  YOGA: "YOGA",
+  TRIAL: "TRIAL",
+  NONE: "NONE",
+} as const;
 export type Membership = (typeof MEMBERSHIP)[keyof typeof MEMBERSHIP];
 
 export const CLASS_TYPES = {
@@ -24,7 +29,10 @@ export const BOOKING_STATUS = {
 } as const;
 
 // Membership pricing shown on the signup page (matches the live site copy).
+// TRIAL is a one-time $20 single-class pass (no membership, no auto-renewal) —
+// the low-commitment first-visit offer that replaces the old "free class".
 export const PRICING = {
+  TRIAL: { introCents: 2000, recurringCents: 0, label: "1 Trial Session" },
   FULL: { introCents: 9900, recurringCents: 12000, label: "Full Membership" },
   YOGA: { introCents: 9900, recurringCents: 9900, label: "Yoga" },
 } as const;

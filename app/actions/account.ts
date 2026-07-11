@@ -4,8 +4,39 @@ import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { uploadAvatar, blobConfigured } from "@/lib/blob";
 
 export type ActionState = { ok?: string; error?: string } | undefined;
+
+// Update the signed-in member's avatar (Vercel Blob). No-ops gracefully when
+// Blob isn't configured — the picker still previews, it just won't persist.
+export async function changeAvatar(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const session = await auth();
+  if (!session?.user?.id) return { error: "Please sign in." };
+
+  const imageFile = formData.get("image");
+  if (!(imageFile instanceof File) || imageFile.size === 0)
+    return { error: "Choose a photo first." };
+
+  const avatar = await uploadAvatar(imageFile, `user-${session.user.id}`);
+  if (avatar.error) return { error: avatar.error };
+  if (!avatar.url) {
+    return blobConfigured()
+      ? { error: "Upload failed. Please try again." }
+      : { error: "Photo uploads aren't enabled yet." };
+  }
+
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: { image: avatar.url },
+  });
+  revalidatePath("/account");
+  revalidatePath("/profile");
+  return { ok: "Profile picture updated." };
+}
 
 export async function changePassword(
   _prev: ActionState,

@@ -3,9 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { BOOKING_STATUS } from "@/lib/constants";
+import { BOOKING_STATUS, MEMBERSHIP } from "@/lib/constants";
+import { sendBookingConfirmation } from "@/lib/email";
 
 export type BookingResult = { ok: boolean; error?: string };
+
+// A $20 trial covers a single class. Once a trial member has an active booking
+// for any other session, they must become a member to book more.
+const TRIAL_UPGRADE_MSG =
+  "Your $20 trial covers one class. Become a member to book more — we'd love to have you!";
 
 function revalidate() {
   revalidatePath("/schedule");
@@ -35,11 +41,42 @@ export async function bookClass(sessionId: string): Promise<BookingResult> {
   if (existing && existing.status === BOOKING_STATUS.BOOKED)
     return { ok: false, error: "You're already booked for this class." };
 
+  // Enforce the single-class trial.
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { membershipType: true, email: true, firstName: true },
+  });
+  if (user?.membershipType === MEMBERSHIP.TRIAL) {
+    const otherActive = await prisma.booking.count({
+      where: {
+        userId,
+        sessionId: { not: sessionId },
+        status: {
+          in: [
+            BOOKING_STATUS.BOOKED,
+            BOOKING_STATUS.WAITLIST,
+            BOOKING_STATUS.ATTENDED,
+          ],
+        },
+      },
+    });
+    if (otherActive >= 1) return { ok: false, error: TRIAL_UPGRADE_MSG };
+  }
+
   await prisma.booking.upsert({
     where: { userId_sessionId: { userId, sessionId } },
     create: { userId, sessionId, status: BOOKING_STATUS.BOOKED },
     update: { status: BOOKING_STATUS.BOOKED },
   });
+
+  // Confirmation email (no-op if Resend isn't configured; never blocks booking).
+  if (user?.email) {
+    void sendBookingConfirmation(user.email, user.firstName, {
+      classType: cls.classType,
+      startAt: cls.startAt,
+      endAt: cls.endAt,
+    });
+  }
 
   revalidate();
   return { ok: true };
