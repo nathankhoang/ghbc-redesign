@@ -54,15 +54,15 @@ export function Hero() {
 
         <Reveal delay={0.5} className="mt-7 max-w-xl text-lg text-cream/85 sm:text-xl">
           Boxing · Muay Thai · Yoga. Beginners welcome — and your{" "}
-          <span className="text-gold">first class is free.</span>
+          <span className="text-gold">first class is just $20.</span>
         </Reveal>
 
         <Reveal delay={0.7} className="mt-9 flex flex-wrap items-center gap-4">
           <Link
-            href="/free-class"
+            href="/join?type=trial"
             className="font-condensed inline-block rounded-full bg-gold px-9 py-4 text-base font-semibold tracking-widest text-ink uppercase transition-transform transition-colors hover:scale-[1.03] hover:bg-bone"
           >
-            Book Your Free Class
+            Book Your $20 Trial
           </Link>
           <Link
             href="/join"

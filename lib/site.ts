@@ -5,7 +5,7 @@ export { GYM, PRICING };
 
 export const NAV = [
   { label: "Classes", href: "#classes" },
-  { label: "Coaches", href: "#coaches" },
+  { label: "Coaches", href: "/coaches" },
   { label: "Schedule", href: "/schedule" },
   { label: "Pricing", href: "#pricing" },
 ];

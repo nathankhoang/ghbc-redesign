@@ -216,7 +216,7 @@ export function LoadingOverlay() {
           <span className={styles.dagger}>✦</span>
           <span>Yoga</span>
           <span className={styles.dagger}>✦</span>
-          <span>First Class Free</span>
+          <span>$20 First Class</span>
         </div>
       </div>
     </div>

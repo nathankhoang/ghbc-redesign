@@ -38,8 +38,9 @@ export function SiteFooter() {
                 Get started
               </h4>
               <ul className="space-y-2">
-                <li><Link href="/free-class" className="text-cream/70 hover:text-gold">Free class</Link></li>
+                <li><Link href="/join?type=trial" className="text-cream/70 hover:text-gold">Try a class · $20</Link></li>
                 <li><Link href="/join" className="text-cream/70 hover:text-gold">Join now</Link></li>
+                <li><Link href="/coaches" className="text-cream/70 hover:text-gold">Meet the coaches</Link></li>
                 <li><Link href="/login" className="text-cream/70 hover:text-gold">Member login</Link></li>
               </ul>
             </div>

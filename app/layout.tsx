@@ -16,7 +16,7 @@ const dmSerif = DM_Serif_Display({
 export const metadata: Metadata = {
   title: "Golden Hill Boxing Club — Step Into the Ring",
   description:
-    "Boxing, Muay Thai & Yoga in Golden Hill, San Diego. Beginners welcome. First class free — first month $99, no contract.",
+    "Boxing, Muay Thai & Yoga in Golden Hill, San Diego. Beginners welcome. $20 first class — first month $99, no contract.",
   icons: { icon: "/favicon.ico" },
 };
 

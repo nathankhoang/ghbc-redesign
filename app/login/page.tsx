@@ -21,8 +21,8 @@ export default function LoginPage() {
           <LoginForm />
           <p className="mt-6 text-center text-sm text-cream/50">
             New here?{" "}
-            <Link href="/free-class" className="text-gold underline underline-offset-4">
-              Try a free class
+            <Link href="/join?type=trial" className="text-gold underline underline-offset-4">
+              Try a class for $20
             </Link>
           </p>
         </div>

@@ -122,13 +122,13 @@ export default function Home() {
 
           <Reveal className="mt-10 flex flex-wrap items-center justify-center gap-4 text-center">
             <span className="font-condensed tracking-wide text-cream/70">
-              Not sure where to start? Your first class is free.
+              Not sure where to start? Your first class is just $20.
             </span>
             <Link
-              href="/free-class"
+              href="/join?type=trial"
               className="font-condensed rounded-full border border-gold px-6 py-2.5 text-sm font-semibold tracking-widest text-gold uppercase transition-colors hover:bg-gold hover:text-ink"
             >
-              Book a free class →
+              Book your $20 trial →
             </Link>
           </Reveal>
         </section>
@@ -142,19 +142,19 @@ export default function Home() {
           </Marquee>
           <div className="relative mx-auto max-w-4xl px-5 text-center sm:px-8">
             <h2 className="font-poster fluid-h2 text-bone">
-              <SplitWords text="Your first round" />
+              <SplitWords text="Your first class" />
               <br />
-              <SplitWords text="is on us." delay={0.1} />
+              <SplitWords text="is just $20." delay={0.1} />
             </h2>
             <Reveal delay={0.3} className="mt-6 text-xl text-cream/80">
               No pressure, no contract. Come throw hands, see how it feels.
             </Reveal>
             <Reveal delay={0.5} className="mt-9">
               <Link
-                href="/free-class"
+                href="/join?type=trial"
                 className="font-condensed inline-block rounded-full bg-gold px-10 py-4 text-base font-semibold tracking-widest text-ink uppercase transition-transform transition-colors hover:scale-[1.03] hover:bg-bone"
               >
-                Claim Your Free Class
+                Book Your $20 Trial
               </Link>
               <p className="font-condensed mt-4 text-xs tracking-widest text-cream/45 uppercase">
                 No card required · no contract
@@ -245,14 +245,14 @@ export default function Home() {
                 Join in one tap
               </Link>
               <Link
-                href="/free-class"
+                href="/join?type=trial"
                 className="font-condensed inline-block rounded-full border border-cream/40 px-10 py-4 text-base font-semibold tracking-widest text-cream uppercase transition-colors hover:border-gold hover:text-gold"
               >
-                Or try a free class
+                Or try one class for $20
               </Link>
             </Reveal>
             <Reveal delay={0.6} className="font-condensed mt-5 text-xs tracking-widest text-cream/45 uppercase">
-              Free first class · no contract · cancel anytime
+              $20 first class · no contract · cancel anytime
             </Reveal>
           </div>
         </section>
@@ -316,10 +316,10 @@ export default function Home() {
                   Get Directions
                 </a>
                 <Link
-                  href="/free-class"
+                  href="/join?type=trial"
                   className="font-condensed inline-block rounded-full bg-gold px-8 py-3.5 text-base font-semibold tracking-widest text-ink uppercase transition-transform transition-colors hover:scale-[1.03] hover:bg-bone"
                 >
-                  Book a free class
+                  Book your $20 trial
                 </Link>
               </Reveal>
             </div>
