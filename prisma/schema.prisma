@@ -29,6 +29,7 @@ model User {
   bookings           Booking[]
   coach              Coach?    // set when this account is a coach's login
   resetTokens        PasswordResetToken[]
+  announcementReads  AnnouncementRead[]
 }
 
 // Single-use password-reset tokens (the raw token is emailed; only its hash is
@@ -49,9 +50,10 @@ model Coach {
   // Optional login account (role COACH). Coaches without a login are display-only.
   user        User?           @relation(fields: [userId], references: [id])
   userId      String?         @unique
-  templates   ClassTemplate[]
-  sessions    ClassSession[]  @relation("SessionCoach")
-  subSessions ClassSession[]  @relation("SubCoach")
+  templates     ClassTemplate[]
+  sessions      ClassSession[]  @relation("SessionCoach")
+  subSessions   ClassSession[]  @relation("SubCoach")
+  announcements Announcement[]
 }
 
 // Recurring weekly slot — the source the visible week is generated from.
@@ -86,9 +88,47 @@ model ClassSession {
   startAt    DateTime
   endAt      DateTime
   capacity   Int            @default(10)
+  // Owner can cancel a single dated class (one-off) or a whole day (holiday /
+  // closure). Cancelled sessions are hidden from the public schedule and are
+  // preserved across regeneration. One-off classes added by the owner have
+  // templateId = null.
+  cancelled  Boolean        @default(false)
   bookings   Booking[]
 
   @@unique([templateId, startAt])
+}
+
+// A gym-wide day off (holiday, maintenance, etc.). When a date is closed,
+// ensureSessionsForWeek skips generating classes on it and cancels any that
+// already exist, so the schedule shows the day closed.
+model Closure {
+  id        String   @id @default(cuid())
+  date      DateTime @unique // local midnight of the closed day
+  reason    String?
+  createdAt DateTime @default(now())
+}
+
+// A message a coach broadcasts to every member. It pops up once in each
+// member's dashboard; dismissing records an AnnouncementRead.
+model Announcement {
+  id         String             @id @default(cuid())
+  coach      Coach?             @relation(fields: [coachId], references: [id])
+  coachId    String?
+  authorName String // snapshot of the coach's name at send time
+  message    String
+  createdAt  DateTime           @default(now())
+  reads      AnnouncementRead[]
+}
+
+model AnnouncementRead {
+  id             String       @id @default(cuid())
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  announcementId String
+  user           User         @relation(fields: [userId], references: [id])
+  userId         String
+  createdAt      DateTime     @default(now())
+
+  @@unique([announcementId, userId])
 }
 
 model Booking {

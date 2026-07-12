@@ -96,11 +96,15 @@ export function ScheduleBooking({
                     <div>
                       <div className="flex items-start justify-between gap-2">
                         <h4 className="font-poster text-2xl text-bone">{c.classType}</h4>
-                        {!c.started && (
+                        {c.classType === "Open Gym" ? (
+                          <span className="font-condensed shrink-0 rounded-full border border-bronze/40 px-2 py-0.5 text-[10px] tracking-widest text-bronze uppercase">
+                            Drop-in
+                          </span>
+                        ) : !c.started ? (
                           <span className="font-condensed shrink-0 rounded-full border border-gold/30 px-2 py-0.5 text-[10px] tracking-widest text-gold uppercase">
                             {c.openSlots} left
                           </span>
-                        )}
+                        ) : null}
                       </div>
                       {c.coachName && <p className="mt-1 text-sm text-cream/60">with {c.coachName}</p>}
                       <p className="font-condensed mt-2 tracking-wide text-cream/80">
@@ -108,7 +112,11 @@ export function ScheduleBooking({
                       </p>
                     </div>
                     <div className="mt-4">
-                      {c.bookedByMe ? (
+                      {c.classType === "Open Gym" ? (
+                        <span className="font-condensed block rounded-full border border-bronze/30 bg-bronze/5 py-2 text-center text-sm tracking-widest text-bronze/90 uppercase">
+                          Open mat · just show up
+                        </span>
+                      ) : c.bookedByMe ? (
                         <span className="font-condensed block rounded-full bg-gold/20 py-2 text-center text-sm tracking-widest text-gold uppercase">Booked ✓</span>
                       ) : c.waitlistedByMe ? (
                         <span className="font-condensed block rounded-full bg-bronze/20 py-2 text-center text-sm tracking-widest text-bronze uppercase">On waitlist</span>

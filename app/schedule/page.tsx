@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS } from "@/lib/constants";
@@ -69,17 +68,6 @@ export default async function SchedulePage({
         <h1 className="font-poster fluid-h2 mb-10 text-bone">The Schedule</h1>
 
         <ScheduleBooking days={days} authed={!!userId} prevWeek={weekParam(addDays(weekStart, -7))} nextWeek={weekParam(addDays(weekStart, 7))} rangeLabel={rangeLabel} />
-
-        {/* Personal training */}
-        <div className="mt-16 flex flex-col items-start justify-between gap-6 rounded-3xl border border-gold/30 bg-gradient-to-br from-oxblood/50 to-ink p-8 sm:flex-row sm:items-center">
-          <div>
-            <h3 className="font-poster text-3xl text-bone">Want 1-on-1 coaching?</h3>
-            <p className="mt-2 max-w-md text-cream/70">Book a private personal training session and get a program built around your goals.</p>
-          </div>
-          <Link href="/personal-training" className="font-condensed shrink-0 rounded-full border border-gold px-8 py-3 text-sm font-semibold tracking-widest text-gold uppercase transition-colors hover:bg-gold hover:text-ink">
-            Book Personal Training
-          </Link>
-        </div>
       </main>
     </>
   );

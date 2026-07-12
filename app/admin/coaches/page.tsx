@@ -7,6 +7,7 @@ import {
   getWeekStart,
 } from "@/lib/schedule";
 import { CreateCoachAccountForm } from "@/components/create-coach-form";
+import { OwnerNav } from "@/components/owner-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -56,15 +57,18 @@ export default async function AdminCoachesPage() {
 
   return (
     <div className="grid gap-8">
-      <header>
-        <p className="font-condensed text-sm tracking-[0.3em] text-gold uppercase">
-          Owner
-        </p>
-        <h1 className="font-poster text-4xl text-bone sm:text-5xl">Coaches</h1>
-        <p className="mt-2 text-cream/60">
-          Each coach&apos;s upcoming classes, who&apos;s signed up, and any covers
-          in place.
-        </p>
+      <header className="grid gap-4">
+        <OwnerNav active="coaches" />
+        <div>
+          <p className="font-condensed text-sm tracking-[0.3em] text-gold uppercase">
+            Owner
+          </p>
+          <h1 className="font-poster text-4xl text-bone sm:text-5xl">Coaches</h1>
+          <p className="mt-2 text-cream/60">
+            Each coach&apos;s upcoming classes, who&apos;s signed up, and any covers
+            in place.
+          </p>
+        </div>
       </header>
 
       {/* Roster / logins */}

@@ -46,6 +46,13 @@ export function isSameDay(a: Date, b: Date): boolean {
   );
 }
 
+/** Local midnight of the day containing `date`. */
+export function startOfDay(date: Date): Date {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
 // ---- session generation -----------------------------------------------------
 
 /**
@@ -88,7 +95,8 @@ export async function ensureSessionsForWeek(weekStart: Date): Promise<void> {
 export type SessionWithMeta = {
   id: string;
   classType: string;
-  coachName: string | null;
+  coachName: string | null; // substitute overlays the scheduled coach
+  covered: boolean; // true when a substitute is covering
   startAt: Date;
   endAt: Date;
   capacity: number;
@@ -96,9 +104,21 @@ export type SessionWithMeta = {
   openSlots: number;
 };
 
+/** Closures (days off) whose date falls within the given week. */
+export async function getClosuresForWeek(
+  weekStart: Date,
+): Promise<{ date: Date; reason: string | null }[]> {
+  const weekEnd = addDays(weekStart, 7);
+  const closures = await prisma.closure.findMany({
+    where: { date: { gte: weekStart, lt: weekEnd } },
+  });
+  return closures.map((c) => ({ date: c.date, reason: c.reason }));
+}
+
 /**
  * Ensure + return all sessions for a week, with coach name and live open-slot
- * counts. Sorted by start time.
+ * counts. Cancelled classes and classes on a closed (day-off) date are omitted.
+ * A substitute coach, when set, overlays the scheduled coach. Sorted by start.
  */
 export async function getWeekSessions(
   weekStart: Date,
@@ -106,25 +126,38 @@ export async function getWeekSessions(
   await ensureSessionsForWeek(weekStart);
 
   const weekEnd = addDays(weekStart, 7);
-  const sessions = await prisma.classSession.findMany({
-    where: { startAt: { gte: weekStart, lt: weekEnd } },
-    include: {
-      coach: true,
-      _count: { select: { bookings: { where: { status: BOOKING_STATUS.BOOKED } } } },
-    },
-    orderBy: { startAt: "asc" },
-  });
+  const [sessions, closures] = await Promise.all([
+    prisma.classSession.findMany({
+      where: { startAt: { gte: weekStart, lt: weekEnd }, cancelled: false },
+      include: {
+        coach: true,
+        subCoach: true,
+        _count: {
+          select: { bookings: { where: { status: BOOKING_STATUS.BOOKED } } },
+        },
+      },
+      orderBy: { startAt: "asc" },
+    }),
+    prisma.closure.findMany({
+      where: { date: { gte: weekStart, lt: weekEnd } },
+    }),
+  ]);
 
-  return sessions.map((s) => ({
-    id: s.id,
-    classType: s.classType,
-    coachName: s.coach?.name ?? null,
-    startAt: s.startAt,
-    endAt: s.endAt,
-    capacity: s.capacity,
-    booked: s._count.bookings,
-    openSlots: Math.max(0, s.capacity - s._count.bookings),
-  }));
+  const closedDays = new Set(closures.map((c) => startOfDay(c.date).getTime()));
+
+  return sessions
+    .filter((s) => !closedDays.has(startOfDay(s.startAt).getTime()))
+    .map((s) => ({
+      id: s.id,
+      classType: s.classType,
+      coachName: s.subCoach?.name ?? s.coach?.name ?? null,
+      covered: !!s.subCoach,
+      startAt: s.startAt,
+      endAt: s.endAt,
+      capacity: s.capacity,
+      booked: s._count.bookings,
+      openSlots: Math.max(0, s.capacity - s._count.bookings),
+    }));
 }
 
 /** Parse a `?week=YYYY-MM-DD` param into a week-start Date (defaults to now). */
