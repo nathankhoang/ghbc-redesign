@@ -200,9 +200,33 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Pricing */}
+        {/* Pricing / Intro Offer — social video left, offer right */}
         <section id="pricing" className="border-y border-oxblood-600/40 bg-oxblood-900/40 py-24 sm:py-32">
-          <div className="mx-auto max-w-3xl px-5 text-center sm:px-8">
+          <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-16">
+            {/* Left — a clip from their social media */}
+            <Reveal className="order-2 lg:order-1">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-gold/30 shadow-2xl">
+                <video
+                  className="h-full w-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="auto"
+                  poster="/videos/intro-poster.jpg"
+                >
+                  <source src="/videos/intro.mp4" type="video/mp4" />
+                </video>
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/50 via-transparent to-transparent" />
+                <div className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-gold/15" />
+                <span className="font-condensed absolute bottom-4 left-4 rounded-full bg-ink/75 px-3 py-1 text-[10px] tracking-widest text-gold uppercase backdrop-blur">
+                  @goldenhillboxingclub
+                </span>
+              </div>
+            </Reveal>
+
+            {/* Right — the intro offer (unchanged design) */}
+            <div className="order-1 text-center lg:order-2">
             <Reveal className="font-condensed mb-3 text-sm tracking-[0.35em] text-bronze uppercase">
               Membership
             </Reveal>
@@ -254,6 +278,7 @@ export default function Home() {
             <Reveal delay={0.6} className="font-condensed mt-5 text-xs tracking-widest text-cream/45 uppercase">
               $20 first class · no contract · cancel anytime
             </Reveal>
+            </div>
           </div>
         </section>
 

@@ -109,6 +109,6 @@ export const VALUE_PROPS = [
   },
   {
     title: "Real Coaches",
-    body: "Trained by people who've actually done it. Personal attention in every group class, plus 1:1 personal training.",
+    body: "Trained by people who've actually done it. Real coaching and personal attention in every class.",
   },
 ];
