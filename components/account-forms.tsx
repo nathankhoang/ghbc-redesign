@@ -7,6 +7,7 @@ import {
   changeAvatar,
   changeEmail,
   changePassword,
+  changePhone,
   type ActionState,
 } from "@/app/actions/account";
 
@@ -115,6 +116,29 @@ export function EmailForm({ email }: { email: string }) {
         <input type="email" name="email" defaultValue={email} required className={field} />
         <div className="flex flex-wrap items-center gap-3">
           <Submit label="Update email" />
+          <Msg state={state} />
+        </div>
+      </form>
+    </Card>
+  );
+}
+
+export function PhoneForm({ phone }: { phone: string | null }) {
+  const [state, action] = useActionState(changePhone, undefined);
+  return (
+    <Card title="Phone number">
+      <form action={action} className="grid gap-3">
+        <input
+          type="tel"
+          name="phone"
+          defaultValue={phone ?? ""}
+          placeholder="Phone number"
+          autoComplete="tel"
+          required
+          className={field}
+        />
+        <div className="flex flex-wrap items-center gap-3">
+          <Submit label="Update phone" />
           <Msg state={state} />
         </div>
       </form>

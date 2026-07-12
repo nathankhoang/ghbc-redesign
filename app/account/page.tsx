@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { AppHeader } from "@/components/app-header";
-import { AvatarForm, EmailForm, PasswordForm } from "@/components/account-forms";
+import { AvatarForm, EmailForm, PhoneForm, PasswordForm } from "@/components/account-forms";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +23,7 @@ export default async function AccountPage() {
           </p>
           <h1 className="font-poster text-4xl text-bone sm:text-5xl">Your settings</h1>
           <p className="mt-2 text-cream/60">
-            Update your photo, email and password.{" "}
+            Update your photo, email, phone and password.{" "}
             <Link href="/profile" className="text-gold underline underline-offset-4">
               Back to dashboard
             </Link>
@@ -33,6 +33,7 @@ export default async function AccountPage() {
         <div className="grid gap-6">
           <AvatarForm firstName={user.firstName} image={user.image} />
           <EmailForm email={user.email} />
+          <PhoneForm phone={user.phone} />
           <PasswordForm />
         </div>
       </main>

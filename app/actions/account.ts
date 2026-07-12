@@ -87,3 +87,23 @@ export async function changeEmail(
   revalidatePath("/profile");
   return { ok: "Email updated." };
 }
+
+export async function changePhone(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const session = await auth();
+  if (!session?.user?.id) return { error: "Please sign in." };
+
+  const phone = String(formData.get("phone") ?? "").trim();
+  if (phone.replace(/\D/g, "").length < 10)
+    return { error: "Enter a valid phone number." };
+
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: { phone },
+  });
+  revalidatePath("/account");
+  revalidatePath("/profile");
+  return { ok: "Phone number updated." };
+}

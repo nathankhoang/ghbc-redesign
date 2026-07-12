@@ -5,6 +5,7 @@ import { BOOKING_STATUS } from "@/lib/constants";
 import { addDays, ensureSessionsForWeek, getWeekStart } from "@/lib/schedule";
 import { CoachDashboard, type CoachSession } from "@/components/coach-dashboard";
 import { CoachProfileForm } from "@/components/coach-profile-form";
+import { BroadcastForm } from "@/components/broadcast-form";
 
 export const dynamic = "force-dynamic";
 
@@ -106,6 +107,8 @@ export default async function CoachPage() {
       </section>
 
       <CoachDashboard sessions={data} otherCoaches={otherCoaches} />
+
+      <BroadcastForm />
 
       <CoachProfileForm name={coach.name} bio={coach.bio ?? ""} />
     </div>

@@ -5,9 +5,13 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS, MEMBERSHIP } from "@/lib/constants";
 import { getWeekStart } from "@/lib/schedule";
+import { getLeaderboard } from "@/lib/leaderboard";
+import { getUnreadAnnouncements } from "@/app/actions/announcements";
 import { AppHeader } from "@/components/app-header";
 import { MyClasses, type Item } from "@/components/my-classes";
 import { ClassReminderPopup, type NextClass } from "@/components/class-reminder-popup";
+import { AnnouncementPopup } from "@/components/announcement-popup";
+import { Leaderboard } from "@/components/leaderboard";
 
 const MEMBERSHIP_LABEL: Record<string, string> = {
   [MEMBERSHIP.FULL]: "Full member",
@@ -34,10 +38,16 @@ export default async function ProfilePage() {
   if (!user) redirect("/login");
 
   const bookings = await prisma.booking.findMany({
-    where: { userId: user.id, status: { in: [BOOKING_STATUS.BOOKED, BOOKING_STATUS.WAITLIST] } },
+    where: {
+      userId: user.id,
+      status: { in: [BOOKING_STATUS.BOOKED, BOOKING_STATUS.WAITLIST, BOOKING_STATUS.ATTENDED] },
+    },
     include: { session: { include: { coach: true } } },
     orderBy: { session: { startAt: "asc" } },
   });
+
+  const { top: leaderboardTop, me: leaderboardMe } = await getLeaderboard(user.id);
+  const announcements = await getUnreadAnnouncements(user.id);
 
   const now = new Date();
   const toItem = (b: (typeof bookings)[number]): Item => ({
@@ -49,13 +59,22 @@ export default async function ProfilePage() {
     waitlisted: b.status === BOOKING_STATUS.WAITLIST,
   });
 
-  const upcoming = bookings.filter((b) => b.session.startAt >= now).map(toItem);
-  const pastBooked = bookings.filter((b) => b.session.startAt < now && b.status === BOOKING_STATUS.BOOKED);
-  const past = [...pastBooked].reverse().map(toItem);
-  const total = pastBooked.length;
+  const upcoming = bookings
+    .filter((b) => b.session.startAt >= now && b.status !== BOOKING_STATUS.ATTENDED)
+    .map(toItem);
+  // A class counts as attended once a coach marks it ATTENDED, or once a booked
+  // class's start time has passed. (Keeps the counter stable when a coach checks
+  // people in — and matches the leaderboard's definition.)
+  const attended = bookings.filter(
+    (b) =>
+      b.status === BOOKING_STATUS.ATTENDED ||
+      (b.status === BOOKING_STATUS.BOOKED && b.session.startAt < now),
+  );
+  const past = [...attended].reverse().map(toItem);
+  const total = attended.length;
 
   // Week streak — consecutive weeks (ending this week) with >=1 attended class
-  const weekKeys = new Set(pastBooked.map((b) => getWeekStart(b.session.startAt).getTime()));
+  const weekKeys = new Set(attended.map((b) => getWeekStart(b.session.startAt).getTime()));
   let streak = 0;
   const cursor = getWeekStart(now);
   while (weekKeys.has(cursor.getTime())) {
@@ -84,6 +103,7 @@ export default async function ProfilePage() {
   return (
     <>
       <ClassReminderPopup firstName={user.firstName} nextClass={nextClass} />
+      <AnnouncementPopup announcements={announcements} />
       <AppHeader />
       <main className="mx-auto max-w-5xl px-5 py-12 sm:px-8">
         {/* Welcome */}
@@ -155,16 +175,21 @@ export default async function ProfilePage() {
 
         <MyClasses upcoming={upcoming} past={past} />
 
+        {/* Leaderboard — top 10 by classes attended */}
+        <div className="mt-8">
+          <Leaderboard top={leaderboardTop} me={leaderboardMe} />
+        </div>
+
         {/* Quick links */}
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          <Link href="/personal-training" className="rounded-3xl border border-oxblood-600/50 bg-oxblood/25 p-6 transition-colors hover:border-gold/50">
-            <h3 className="font-poster text-2xl text-bone">Personal Training →</h3>
-            <p className="mt-1 text-cream/60">Book 1-on-1 coaching built around your goals.</p>
+          <Link href="/schedule" className="rounded-3xl border border-oxblood-600/50 bg-oxblood/25 p-6 transition-colors hover:border-gold/50">
+            <h3 className="font-poster text-2xl text-bone">Book a class →</h3>
+            <p className="mt-1 text-cream/60">See the week&apos;s schedule and grab your spot.</p>
           </Link>
-          <div className="rounded-3xl border border-oxblood-600/50 bg-oxblood/25 p-6">
-            <h3 className="font-poster text-2xl text-bone">Membership</h3>
-            <p className="mt-1 text-cream/60">Full member · $120/mo · no contract · cancel anytime.</p>
-          </div>
+          <Link href="/account" className="rounded-3xl border border-oxblood-600/50 bg-oxblood/25 p-6 transition-colors hover:border-gold/50">
+            <h3 className="font-poster text-2xl text-bone">Account settings →</h3>
+            <p className="mt-1 text-cream/60">Update your photo, email, phone and password.</p>
+          </Link>
         </div>
       </main>
     </>
