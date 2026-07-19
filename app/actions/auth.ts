@@ -6,8 +6,8 @@ import { AuthError } from "next-auth";
 import bcrypt from "bcryptjs";
 import { signIn, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { MEMBERSHIP } from "@/lib/constants";
-import { createSubscription, createTrialCharge } from "@/lib/square";
+import { MEMBERSHIP, type PlanKey } from "@/lib/constants";
+import { createSubscription, createOneTimeCharge } from "@/lib/square";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { formatUSPhone, isValidEmail, isValidUSPhone } from "@/lib/validation";
 import { uploadAvatar } from "@/lib/blob";
@@ -57,10 +57,18 @@ export async function register(
     .trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const plan = String(formData.get("plan") ?? "FULL");
+  const planRaw = String(formData.get("plan") ?? "FULL");
   const paymentToken = String(formData.get("paymentToken") ?? "");
+  const promoInput = String(formData.get("promoCode") ?? "").trim();
+  const waiverAccepted = formData.get("waiver") === "on";
   const turnstileToken = formData.get("cf-turnstile-response");
   const imageFile = formData.get("image");
+
+  const plan: PlanKey = (
+    ["TRIAL", "FULL", "SIX_MONTH", "TWELVE_MONTH"] as const
+  ).includes(planRaw as never)
+    ? (planRaw as PlanKey)
+    : "FULL";
 
   if (!firstName || !email || !phone || !password) {
     return { error: "Please fill in your name, phone, email and password." };
@@ -73,6 +81,10 @@ export async function register(
   }
   if (password.length < 8) {
     return { error: "Password must be at least 8 characters." };
+  }
+  // Liability waiver is required for BOTH membership and trial signups.
+  if (!waiverAccepted) {
+    return { error: "Please read and agree to the liability waiver to continue." };
   }
 
   // Bot protection — Cloudflare Turnstile (skipped until configured).
@@ -88,15 +100,32 @@ export async function register(
     return { error: "An account with that email already exists." };
   }
 
-  // TRIAL and the prepaid blocks are one-time charges; FULL is the $99→$125
-  // subscription. All prepay plans grant the FULL membership experience.
+  // Promo code — a valid active code can grant a discounted (usually $0)
+  // membership. 100%-off codes skip payment entirely but still create the
+  // account + an active membership.
+  let promo: { id: string; percentOff: number; duration: string } | null = null;
+  if (promoInput) {
+    const code = await prisma.promoCode.findUnique({
+      where: { code: promoInput.toUpperCase() },
+    });
+    if (!code || !code.active) {
+      return { error: "That promo code isn't valid." };
+    }
+    promo = { id: code.id, percentOff: code.percentOff, duration: code.duration };
+  }
+  const freeViaPromo = promo !== null && promo.percentOff >= 100;
+
+  // TRIAL and the prepaid blocks are one-time charges; FULL is the phased
+  // $99→$125 subscription (Square rolls the price over automatically).
   const membershipType = plan === "TRIAL" ? MEMBERSHIP.TRIAL : MEMBERSHIP.FULL;
 
-  // Process payment (stubbed unless Square sandbox is configured).
-  const payment =
-    membershipType === MEMBERSHIP.TRIAL
-      ? await createTrialCharge({ email, firstName, lastName, membershipType, paymentToken })
-      : await createSubscription({ email, firstName, lastName, membershipType, paymentToken });
+  // Charge BEFORE creating the account — a declined card must never leave a
+  // half-created user behind.
+  const payment = freeViaPromo
+    ? { ok: true as const, customerId: null, subscriptionId: null }
+    : plan === "FULL"
+      ? await createSubscription({ email, firstName, lastName, phone, membershipType, paymentToken, plan })
+      : await createOneTimeCharge({ email, firstName, lastName, phone, membershipType, paymentToken, plan });
   if (!payment.ok) {
     return { error: payment.error ?? "Payment could not be processed." };
   }
@@ -110,6 +139,12 @@ export async function register(
     return { error: avatar.error };
   }
 
+  // Prepaid blocks give a fixed coverage window.
+  const months = plan === "SIX_MONTH" ? 6 : plan === "TWELVE_MONTH" ? 12 : 0;
+  const prepaidUntil = months
+    ? new Date(new Date().setMonth(new Date().getMonth() + months))
+    : null;
+
   await prisma.user.create({
     data: {
       firstName,
@@ -121,11 +156,29 @@ export async function register(
       membershipType,
       squareCustomerId: payment.customerId ?? null,
       subscriptionStatus: "active",
+      waiverAcceptedAt: new Date(),
+      // Trial buyers get exactly ONE class credit, consumed on booking.
+      trialClassCredits: plan === "TRIAL" ? 1 : 0,
+      membership: {
+        create: {
+          plan: freeViaPromo ? "PROMO" : plan,
+          status: "active",
+          squareCustomerId: payment.customerId ?? null,
+          squareSubscriptionId: payment.subscriptionId ?? null,
+          prepaidUntil,
+          promoCodeId: promo?.id ?? null,
+        },
+      },
     },
   });
 
   try {
-    await signIn("credentials", { email, password, redirectTo: "/welcome" });
+    await signIn("credentials", {
+      email,
+      password,
+      // Trial buyers go straight to the schedule to book their one class.
+      redirectTo: plan === "TRIAL" ? "/schedule" : "/welcome",
+    });
   } catch (error) {
     if (error instanceof AuthError) {
       return { error: "Account created, but sign-in failed. Please log in." };

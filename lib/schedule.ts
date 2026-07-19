@@ -1,9 +1,64 @@
 import { prisma } from "@/lib/prisma";
-import { BOOKING_STATUS } from "@/lib/constants";
+import { BOOKING_STATUS, GYM_TIMEZONE } from "@/lib/constants";
 
 export const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 // ---- time helpers -----------------------------------------------------------
+// ALL schedule logic and display is pinned to the gym's timezone
+// (America/Los_Angeles), regardless of the server's or viewer's timezone.
+// Dates are stored as real UTC instants; the helpers below convert between
+// UTC instants and LA wall-clock time (DST-safe via Intl).
+
+const partsFmt = new Intl.DateTimeFormat("en-US", {
+  timeZone: GYM_TIMEZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+  weekday: "short",
+});
+
+type TzParts = { y: number; m: number; d: number; hour: number; minute: number; weekday: number };
+
+/** The LA wall-clock components of a UTC instant. */
+export function tzParts(date: Date): TzParts {
+  const parts: Record<string, string> = {};
+  for (const p of partsFmt.formatToParts(date)) parts[p.type] = p.value;
+  const hour = Number(parts.hour) === 24 ? 0 : Number(parts.hour);
+  return {
+    y: Number(parts.year),
+    m: Number(parts.month),
+    d: Number(parts.day),
+    hour,
+    minute: Number(parts.minute),
+    weekday: DAY_LABELS.indexOf(parts.weekday),
+  };
+}
+
+/** The UTC instant of an LA wall time (y/m/d + minutes from midnight). */
+export function zonedTimeToUtc(
+  y: number,
+  m: number,
+  d: number,
+  minutesFromMidnight: number,
+): Date {
+  const h = Math.floor(minutesFromMidnight / 60);
+  const min = minutesFromMidnight % 60;
+  const desired = Date.UTC(y, m - 1, d, h, min);
+  let ts = desired;
+  // Iterate: measure what LA wall time the guess lands on, correct by the
+  // difference. Converges in ≤2 steps incl. DST transitions.
+  for (let i = 0; i < 3; i++) {
+    const p = tzParts(new Date(ts));
+    const wall = Date.UTC(p.y, p.m - 1, p.d, p.hour, p.minute);
+    const diff = desired - wall;
+    if (diff === 0) break;
+    ts += diff;
+  }
+  return new Date(ts);
+}
 
 /** Format minutes-from-midnight as e.g. "7:15 AM". */
 export function formatMinutes(min: number): string {
@@ -14,43 +69,48 @@ export function formatMinutes(min: number): string {
   return `${h12}:${m.toString().padStart(2, "0")} ${ampm}`;
 }
 
-/** Format a stored Date as e.g. "7:15 AM" using local time. */
+/** Format a stored instant as e.g. "7:15 AM" in gym time. */
 export function formatTime(d: Date): string {
-  return formatMinutes(d.getHours() * 60 + d.getMinutes());
+  return d.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: GYM_TIMEZONE,
+  });
 }
 
-/** Sunday 00:00 (local) of the week containing `date`. */
-export function getWeekStart(date: Date): Date {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() - d.getDay());
-  return d;
+/** LA midnight of the LA-day containing `date`. */
+export function startOfDay(date: Date): Date {
+  const p = tzParts(date);
+  return zonedTimeToUtc(p.y, p.m, p.d, 0);
 }
 
+/** Shift by whole LA calendar days, preserving wall-clock time (DST-safe). */
 export function addDays(date: Date, days: number): Date {
-  const d = new Date(date);
-  d.setDate(d.getDate() + days);
-  return d;
+  const p = tzParts(date);
+  const shifted = new Date(Date.UTC(p.y, p.m - 1, p.d + days));
+  return zonedTimeToUtc(
+    shifted.getUTCFullYear(),
+    shifted.getUTCMonth() + 1,
+    shifted.getUTCDate(),
+    p.hour * 60 + p.minute,
+  );
 }
 
-/** The seven day-Dates (local midnight) for a week starting at `weekStart`. */
+/** Sunday 00:00 (LA) of the week containing `date`. */
+export function getWeekStart(date: Date): Date {
+  const p = tzParts(date);
+  return addDays(zonedTimeToUtc(p.y, p.m, p.d, 0), -p.weekday);
+}
+
+/** The seven day-Dates (LA midnight) for a week starting at `weekStart`. */
 export function weekDays(weekStart: Date): Date[] {
   return Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 }
 
 export function isSameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
-
-/** Local midnight of the day containing `date`. */
-export function startOfDay(date: Date): Date {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
+  const pa = tzParts(a);
+  const pb = tzParts(b);
+  return pa.y === pb.y && pa.m === pb.m && pa.d === pb.d;
 }
 
 // ---- session generation -----------------------------------------------------
@@ -66,29 +126,42 @@ export async function ensureSessionsForWeek(weekStart: Date): Promise<void> {
   });
 
   for (const t of templates) {
-    const day = addDays(weekStart, t.dayOfWeek);
-    const startAt = new Date(day);
-    startAt.setHours(0, t.startMin, 0, 0);
-    const endAt = new Date(day);
-    endAt.setHours(0, t.endMin, 0, 0);
+    const day = addDays(weekStart, t.dayOfWeek); // LA midnight of the slot's day
+    const p = tzParts(day);
+    const startAt = zonedTimeToUtc(p.y, p.m, p.d, t.startMin);
+    const endAt = zonedTimeToUtc(p.y, p.m, p.d, t.endMin);
 
-    await prisma.classSession.upsert({
-      where: { templateId_startAt: { templateId: t.id, startAt } },
-      create: {
-        templateId: t.id,
-        classType: t.classType,
-        coachId: t.coachId,
-        startAt,
-        endAt,
-        capacity: t.capacity,
-      },
-      update: {
-        classType: t.classType,
-        coachId: t.coachId,
-        endAt,
-        capacity: t.capacity,
-      },
+    // One session per template per LA-day. Owner edits to a single occurrence
+    // (edited=true, possibly with a different time) are NEVER overwritten —
+    // and never duplicated — by regeneration. subCoachId (covers) survives too.
+    const dayEnd = addDays(day, 1);
+    const existing = await prisma.classSession.findFirst({
+      where: { templateId: t.id, startAt: { gte: day, lt: dayEnd } },
     });
+
+    if (!existing) {
+      await prisma.classSession.create({
+        data: {
+          templateId: t.id,
+          classType: t.classType,
+          coachId: t.coachId,
+          startAt,
+          endAt,
+          capacity: t.capacity,
+        },
+      });
+    } else if (!existing.edited) {
+      await prisma.classSession.update({
+        where: { id: existing.id },
+        data: {
+          classType: t.classType,
+          coachId: t.coachId,
+          startAt,
+          endAt,
+          capacity: t.capacity,
+        },
+      });
+    }
   }
 }
 
@@ -160,19 +233,19 @@ export async function getWeekSessions(
     }));
 }
 
-/** Parse a `?week=YYYY-MM-DD` param into a week-start Date (defaults to now). */
+/** Parse a `?week=YYYY-MM-DD` param into an LA week-start (defaults to now). */
 export function parseWeekParam(week?: string): Date {
   if (week) {
-    const parsed = new Date(week + "T00:00:00");
-    if (!Number.isNaN(parsed.getTime())) return getWeekStart(parsed);
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(week.trim());
+    if (m) {
+      return getWeekStart(zonedTimeToUtc(Number(m[1]), Number(m[2]), Number(m[3]), 12));
+    }
   }
   return getWeekStart(new Date());
 }
 
-/** Format a week-start Date as `YYYY-MM-DD` for use in the `?week=` param. */
+/** Format a week-start Date as `YYYY-MM-DD` (LA calendar) for `?week=`. */
 export function weekParam(weekStart: Date): string {
-  const y = weekStart.getFullYear();
-  const m = (weekStart.getMonth() + 1).toString().padStart(2, "0");
-  const d = weekStart.getDate().toString().padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  const p = tzParts(weekStart);
+  return `${p.y}-${p.m.toString().padStart(2, "0")}-${p.d.toString().padStart(2, "0")}`;
 }

@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { GYM } from "@/lib/constants";
+import { GYM, GYM_TIMEZONE, PRICING } from "@/lib/constants";
 
 // Transactional email via Resend. No-ops (returns skipped) when RESEND_API_KEY
 // isn't set, so auth/booking flows still work locally before it's configured.
@@ -93,6 +93,7 @@ export async function sendBookingConfirmation(
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    timeZone: GYM_TIMEZONE,
   });
   return send(
     to,
@@ -102,6 +103,90 @@ export async function sendBookingConfirmation(
       `You're confirmed for <strong style="color:#f6f0e2;">${cls.classType}</strong> on <strong style="color:#f6f0e2;">${when}</strong>.
        Come ready to train — water and hand wraps recommended.`,
       { href: `${SITE_URL}/schedule`, label: "View my classes" },
+    ),
+  );
+}
+
+// "Claim your account" magic link for members migrated from Square — they only
+// set a password; their payment method already lives in Square.
+export async function sendClaimLink(
+  to: string,
+  firstName: string,
+  claimUrl: string,
+): Promise<SendResult> {
+  return send(
+    to,
+    "Claim your Golden Hill Boxing Club account",
+    layout(
+      `Hey ${firstName} — your new member portal is ready`,
+      `We've launched a new members site where you can book classes, track your
+       progress and manage your membership. Your membership carries over exactly
+       as-is — same price, nothing changes with your billing. Just set a
+       password to claim your account (no card needed).`,
+      { href: claimUrl, label: "Claim my account" },
+    ),
+  );
+}
+
+// Coach invite — the coach sets their password via the same claim mechanism.
+export async function sendCoachInvite(
+  to: string,
+  name: string,
+  inviteUrl: string,
+): Promise<SendResult> {
+  return send(
+    to,
+    "You're invited to coach at Golden Hill Boxing Club",
+    layout(
+      `Welcome to the corner, ${name}`,
+      `You've been added as a coach. Set your password to access your coach
+       dashboard — your weekly classes and rosters live there.`,
+      { href: inviteUrl, label: "Set my password" },
+    ),
+  );
+}
+
+// Waitlist auto-promotion — instant notification that a spot opened up.
+export async function sendWaitlistPromotion(
+  to: string,
+  firstName: string,
+  cls: { classType: string; startAt: Date },
+): Promise<SendResult> {
+  const when = cls.startAt.toLocaleString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: GYM_TIMEZONE,
+  });
+  return send(
+    to,
+    `A spot opened up — you're in for ${cls.classType}`,
+    layout(
+      `You're off the waitlist, ${firstName}! 🥊`,
+      `A spot opened up and you're now <strong style="color:#f6f0e2;">confirmed</strong> for
+       <strong style="color:#f6f0e2;">${cls.classType}</strong> on
+       <strong style="color:#f6f0e2;">${when}</strong>. See you there!`,
+      { href: `${SITE_URL}/profile`, label: "View my classes" },
+    ),
+  );
+}
+
+// Post-trial conversion nudge, sent the day after a trial class.
+export async function sendTrialFollowUp(
+  to: string,
+  firstName: string,
+): Promise<SendResult> {
+  return send(
+    to,
+    "How was your first class?",
+    layout(
+      `How'd it feel, ${firstName}?`,
+      `We hope you left dripping and smiling. Ready to make it official?
+       Your first month is just <strong style="color:#f6f0e2;">$${PRICING.FULL.introCents / 100}</strong>,
+       then $${PRICING.FULL.recurringCents / 100}/mo — no contract, cancel anytime.`,
+      { href: `${SITE_URL}/join`, label: `Join — $${PRICING.FULL.introCents / 100} first month` },
     ),
   );
 }

@@ -23,13 +23,95 @@ model User {
   role               String    @default("MEMBER") // MEMBER | COACH | OWNER
   membershipType     String    @default("FULL")   // FULL | YOGA | TRIAL | NONE
   squareCustomerId   String?
-  subscriptionStatus String    @default("active")  // active | past_due | cancelled
+  subscriptionStatus String    @default("active")  // active | past_due | paused | cancelled | pending_claim
   classesGoal        Int       @default(100)
+  // Liability waiver acceptance (required at signup — both membership & trial).
+  waiverAcceptedAt   DateTime?
+  // Owner's manual rewards adjustment (+/-) added to the attended-class count —
+  // corrections and grandfathered members' historical classes.
+  classCountAdjust   Int       @default(0)
+  // Trial buyers get exactly ONE class credit; consumed on booking.
+  trialClassCredits  Int       @default(0)
   createdAt          DateTime  @default(now())
   bookings           Booking[]
   coach              Coach?    // set when this account is a coach's login
   resetTokens        PasswordResetToken[]
   announcementReads  AnnouncementRead[]
+  membership         Membership?
+  notifications      Notification[]
+  claimTokens        ClaimToken[]
+  rewardMilestones   RewardMilestone[]
+}
+
+// The money-side record for a member. Square is the source of truth for what
+// gets charged; this row links the member to their Square customer +
+// subscription and mirrors the billing status (kept in sync by webhooks).
+model Membership {
+  id                   String     @id @default(cuid())
+  user                 User       @relation(fields: [userId], references: [id])
+  userId               String     @unique
+  plan                 String // TRIAL | FULL | SIX_MONTH | TWELVE_MONTH | GRANDFATHERED | PROMO
+  status               String     @default("active") // active | past_due | paused | cancelled | pending_claim | expired
+  squareCustomerId     String?
+  squareSubscriptionId String?
+  // For prepaid blocks (6/12-month) — membership runs until this date.
+  prepaidUntil         DateTime?
+  promoCode            PromoCode? @relation(fields: [promoCodeId], references: [id])
+  promoCodeId          String?
+  startedAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+}
+
+// Owner-managed promo codes. percentOff 100 + payment skip = free membership.
+model PromoCode {
+  id          String       @id @default(cuid())
+  code        String       @unique
+  percentOff  Int          @default(100)
+  // FOREVER = ongoing free membership (owner revokes by cancelling);
+  // FIRST_MONTH = discount applies to the first month only.
+  duration    String       @default("FOREVER") // FOREVER | FIRST_MONTH
+  active      Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  memberships Membership[]
+}
+
+// In-dashboard notifications (waitlist promotions, payment issues, …).
+// Drives the banner/badge in the member dashboard; readAt set on view.
+model Notification {
+  id        String    @id @default(cuid())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  title     String
+  body      String
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+}
+
+// Single-use "claim your account" / coach-invite magic-link tokens (hash
+// stored, raw token emailed) — same pattern as PasswordResetToken.
+model ClaimToken {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  tokenHash String   @unique
+  purpose   String   @default("CLAIM") // CLAIM (member migration) | COACH_INVITE
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+// Rewards milestones a member has hit (100 / 250 / 500 classes). The gold glow
+// persists while redeemedAt is null; celebratedAt records that the confetti
+// popup was shown & acknowledged so it doesn't re-fire every visit.
+model RewardMilestone {
+  id           String    @id @default(cuid())
+  user         User      @relation(fields: [userId], references: [id])
+  userId       String
+  milestone    Int // 100 | 250 | 500
+  reachedAt    DateTime  @default(now())
+  celebratedAt DateTime?
+  redeemedAt   DateTime?
+
+  @@unique([userId, milestone])
 }
 
 // Single-use password-reset tokens (the raw token is emailed; only its hash is
@@ -47,6 +129,9 @@ model Coach {
   id          String          @id @default(cuid())
   name        String
   bio         String?
+  specialty   String? // e.g. "Boxing · Muay Thai"
+  // Deactivated coaches keep their history but can't sign in / take classes.
+  active      Boolean         @default(true)
   // Optional login account (role COACH). Coaches without a login are display-only.
   user        User?           @relation(fields: [userId], references: [id])
   userId      String?         @unique
@@ -93,6 +178,9 @@ model ClassSession {
   // preserved across regeneration. One-off classes added by the owner have
   // templateId = null.
   cancelled  Boolean        @default(false)
+  // Set when the owner edits THIS occurrence only ("this class only") — session
+  // regeneration then never overwrites its time/coach/capacity from the template.
+  edited     Boolean        @default(false)
   bookings   Booking[]
 
   @@unique([templateId, startAt])

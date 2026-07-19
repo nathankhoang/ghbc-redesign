@@ -18,19 +18,27 @@ async function currentUser() {
   return session.user;
 }
 
+// Cover assignment and attendance are owner-only tools now — coaches only
+// manage their own profile from their dashboard.
+async function currentOwner() {
+  const session = await auth();
+  if (!session?.user?.id || session.user.role !== ROLES.OWNER) return null;
+  return session.user;
+}
+
 function revalidateSchedules() {
   revalidatePath("/coach");
   revalidatePath("/schedule");
   revalidatePath("/admin/coaches");
 }
 
-// Assign another coach to cover one session. Only the session's scheduled
-// coach (or the owner) may do this. Instant — members see the sub right away.
+// Assign another coach to cover one session. Owner-only — the coach
+// dashboard no longer exposes this. Instant — members see the sub right away.
 export async function assignSubstitute(
   sessionId: string,
   subCoachId: string,
 ): Promise<CoachActionResult> {
-  const user = await currentUser();
+  const user = await currentOwner();
   if (!user) return { ok: false, error: "Not authorized." };
 
   const cls = await prisma.classSession.findUnique({ where: { id: sessionId } });
@@ -38,11 +46,6 @@ export async function assignSubstitute(
   if (cls.startAt < new Date())
     return { ok: false, error: "That class has already started." };
 
-  const myCoach = await prisma.coach.findUnique({ where: { userId: user.id } });
-  const isOwner = user.role === ROLES.OWNER;
-  if (!isOwner && (!myCoach || cls.coachId !== myCoach.id)) {
-    return { ok: false, error: "You can only arrange cover for your own classes." };
-  }
   if (!subCoachId) return { ok: false, error: "Choose a coach to cover." };
   if (subCoachId === cls.coachId)
     return { ok: false, error: "That coach already teaches this class." };
@@ -55,23 +58,15 @@ export async function assignSubstitute(
   return { ok: true };
 }
 
-// Cancel a substitution (the scheduled coach is back on).
+// Cancel a substitution (the scheduled coach is back on). Owner-only.
 export async function clearSubstitute(
   sessionId: string,
 ): Promise<CoachActionResult> {
-  const user = await currentUser();
+  const user = await currentOwner();
   if (!user) return { ok: false, error: "Not authorized." };
 
   const cls = await prisma.classSession.findUnique({ where: { id: sessionId } });
   if (!cls) return { ok: false, error: "Class not found." };
-
-  const myCoach = await prisma.coach.findUnique({ where: { userId: user.id } });
-  const isOwner = user.role === ROLES.OWNER;
-  // The scheduled coach or the covering coach (or owner) can clear it.
-  const mayClear =
-    isOwner ||
-    (myCoach && (cls.coachId === myCoach.id || cls.subCoachId === myCoach.id));
-  if (!mayClear) return { ok: false, error: "Not authorized." };
 
   await prisma.classSession.update({
     where: { id: sessionId },
@@ -81,12 +76,13 @@ export async function clearSubstitute(
   return { ok: true };
 }
 
-// Mark / unmark a member as attended for a class the coach teaches or covers.
+// Mark / unmark a member as attended. Owner-only — coaches no longer manage
+// attendance from their dashboard.
 export async function toggleAttendance(
   bookingId: string,
   attended: boolean,
 ): Promise<CoachActionResult> {
-  const user = await currentUser();
+  const user = await currentOwner();
   if (!user) return { ok: false, error: "Not authorized." };
 
   const booking = await prisma.booking.findUnique({
@@ -94,14 +90,6 @@ export async function toggleAttendance(
     include: { session: true },
   });
   if (!booking) return { ok: false, error: "Booking not found." };
-
-  const myCoach = await prisma.coach.findUnique({ where: { userId: user.id } });
-  const isOwner = user.role === ROLES.OWNER;
-  const teachesIt =
-    myCoach &&
-    (booking.session.coachId === myCoach.id ||
-      booking.session.subCoachId === myCoach.id);
-  if (!isOwner && !teachesIt) return { ok: false, error: "Not your class." };
 
   await prisma.booking.update({
     where: { id: bookingId },

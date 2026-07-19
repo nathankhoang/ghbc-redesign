@@ -7,15 +7,15 @@ import { ROLES } from "@/lib/constants";
 
 export type ActionState = { ok?: string; error?: string } | undefined;
 
-// Coach / owner broadcasts a note to every member. It surfaces as a one-time
-// popup in each member's dashboard until they dismiss it.
+// Owner broadcasts a note to every member. It surfaces as a one-time popup in
+// each member's dashboard until they dismiss it. Coaches can no longer send —
+// this is an owner-only tool.
 export async function sendAnnouncement(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
   const session = await auth();
-  const role = session?.user?.role;
-  if (!session?.user?.id || (role !== ROLES.COACH && role !== ROLES.OWNER)) {
+  if (!session?.user?.id || session.user.role !== ROLES.OWNER) {
     return { error: "Not authorized." };
   }
 

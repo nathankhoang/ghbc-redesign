@@ -5,7 +5,6 @@ import { BOOKING_STATUS } from "@/lib/constants";
 import { addDays, ensureSessionsForWeek, getWeekStart } from "@/lib/schedule";
 import { CoachDashboard, type CoachSession } from "@/components/coach-dashboard";
 import { CoachProfileForm } from "@/components/coach-profile-form";
-import { BroadcastForm } from "@/components/broadcast-form";
 
 export const dynamic = "force-dynamic";
 
@@ -34,16 +33,13 @@ export default async function CoachPage() {
   const now = new Date();
   const thisWeek = getWeekStart(now);
   const nextWeek = addDays(thisWeek, 7);
-  await Promise.all([
-    ensureSessionsForWeek(thisWeek),
-    ensureSessionsForWeek(nextWeek),
-  ]);
+  await ensureSessionsForWeek(thisWeek);
 
-  // Sessions I teach or am covering, from now through the next two weeks.
+  // This week's sessions I teach or am covering — nothing outside the current week.
   const sessions = await prisma.classSession.findMany({
     where: {
-      endAt: { gte: now },
-      startAt: { lt: addDays(thisWeek, 14) },
+      startAt: { gte: thisWeek, lt: nextWeek },
+      cancelled: false,
       OR: [{ coachId: coach.id }, { subCoachId: coach.id }],
     },
     include: {
@@ -51,19 +47,15 @@ export default async function CoachPage() {
       subCoach: true,
       bookings: {
         where: {
-          status: { in: [BOOKING_STATUS.BOOKED, BOOKING_STATUS.ATTENDED] },
+          status: {
+            in: [BOOKING_STATUS.BOOKED, BOOKING_STATUS.ATTENDED, BOOKING_STATUS.WAITLIST],
+          },
         },
         include: { user: true },
         orderBy: { createdAt: "asc" },
       },
     },
     orderBy: { startAt: "asc" },
-  });
-
-  const otherCoaches = await prisma.coach.findMany({
-    where: { id: { not: coach.id } },
-    orderBy: { name: "asc" },
-    select: { id: true, name: true },
   });
 
   const data: CoachSession[] = sessions.map((s) => ({
@@ -76,18 +68,26 @@ export default async function CoachPage() {
     subCoachName: s.subCoach?.name ?? null,
     iAmScheduled: s.coachId === coach.id,
     iAmSub: s.subCoachId === coach.id,
-    roster: s.bookings.map((b) => ({
-      bookingId: b.id,
-      name: `${b.user.firstName} ${b.user.lastName}`.trim(),
-      email: b.user.email,
-      phone: b.user.phone ?? null,
-      image: b.user.image ?? null,
-      attended: b.status === BOOKING_STATUS.ATTENDED,
-    })),
+    roster: s.bookings
+      .filter((b) => b.status !== BOOKING_STATUS.WAITLIST)
+      .map((b) => ({
+        bookingId: b.id,
+        firstName: b.user.firstName,
+        email: b.user.email,
+        phone: b.user.phone ?? null,
+        image: b.user.image ?? null,
+      })),
+    waitlistCount: s.bookings.filter((b) => b.status === BOOKING_STATUS.WAITLIST).length,
   }));
 
-  const totalUpcoming = data.filter((s) => s.iAmScheduled).length;
-  const totalMembers = data.reduce((n, s) => n + s.roster.length, 0);
+  const totalClasses = data.length;
+  const totalBooked = data.reduce((n, s) => n + s.roster.length, 0);
+
+  const weekEnd = addDays(thisWeek, 6);
+  const weekLabel = `This week · ${thisWeek.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  })} – ${weekEnd.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
 
   return (
     <div className="grid gap-8">
@@ -100,15 +100,12 @@ export default async function CoachPage() {
           Welcome, {coach.name}
         </h1>
         <div className="mt-6 flex flex-wrap gap-8">
-          <Stat label="Your upcoming classes" value={totalUpcoming} />
-          <Stat label="Members booked" value={totalMembers} />
-          <Stat label="Covering for others" value={data.filter((s) => s.iAmSub).length} />
+          <Stat label="Classes this week" value={totalClasses} />
+          <Stat label="Members booked" value={totalBooked} />
         </div>
       </section>
 
-      <CoachDashboard sessions={data} otherCoaches={otherCoaches} />
-
-      <BroadcastForm />
+      <CoachDashboard sessions={data} weekLabel={weekLabel} />
 
       <CoachProfileForm name={coach.name} bio={coach.bio ?? ""} />
     </div>

@@ -16,7 +16,7 @@ export default async function CoachLayout({
   return (
     <>
       <AppHeader />
-      <main className="mx-auto w-full max-w-5xl px-5 py-12 sm:px-8">
+      <main className="selectable mx-auto w-full max-w-5xl px-5 py-12 sm:px-8">
         {children}
       </main>
     </>

@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS, CLASS_TYPES, ROLES } from "@/lib/constants";
-import { startOfDay } from "@/lib/schedule";
+import { startOfDay, tzParts, zonedTimeToUtc } from "@/lib/schedule";
+import { promoteFromWaitlist } from "@/app/actions/booking";
 
 export type ScheduleState = { ok?: string; error?: string } | undefined;
 
@@ -181,8 +182,8 @@ export async function addClosure(
   const raw = String(formData.get("date") ?? "").trim();
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
   if (!m) return { error: "Choose a date." };
-  const date = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-  date.setHours(0, 0, 0, 0);
+  // Stored as LA midnight of the chosen day.
+  const date = zonedTimeToUtc(Number(m[1]), Number(m[2]), Number(m[3]), 0);
   if (Number.isNaN(date.getTime())) return { error: "Choose a valid date." };
 
   const reason = String(formData.get("reason") ?? "").trim() || null;
@@ -200,6 +201,58 @@ export async function removeClosure(id: string): Promise<void> {
   await requireOwner();
   await prisma.closure.delete({ where: { id } });
   revalidateSchedule();
+}
+
+// Edit a SINGLE occurrence ("this class only" — Google Calendar style). The
+// session is flagged `edited` so weekly regeneration never overwrites it; the
+// recurring series (template) is untouched. Series-wide edits ("all future
+// classes") go through updateTemplate above.
+export async function updateSession(
+  _prev: ScheduleState,
+  formData: FormData,
+): Promise<ScheduleState> {
+  await requireOwner();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "Missing class." };
+
+  const existing = await prisma.classSession.findUnique({ where: { id } });
+  if (!existing) return { error: "Class not found." };
+
+  const startMin = readMinutes(formData, "startTime", "startHour", "startMin");
+  const endMin = readMinutes(formData, "endTime", "endHour", "endMin");
+  if (startMin == null) return { error: "Enter a valid start time." };
+  if (endMin == null) return { error: "Enter a valid end time." };
+  if (endMin <= startMin) return { error: "End time must be after the start time." };
+
+  const capacity = Number(formData.get("capacity"));
+  if (!Number.isInteger(capacity) || capacity < 1)
+    return { error: "Capacity must be at least 1." };
+
+  const coachRaw = String(formData.get("coachId") ?? "").trim();
+  const coachId = coachRaw === "" ? null : coachRaw;
+
+  // Same LA calendar day, new wall-clock time.
+  const p = tzParts(existing.startAt);
+  const oldCapacity = existing.capacity;
+
+  await prisma.classSession.update({
+    where: { id },
+    data: {
+      startAt: zonedTimeToUtc(p.y, p.m, p.d, startMin),
+      endAt: zonedTimeToUtc(p.y, p.m, p.d, endMin),
+      coachId,
+      capacity,
+      edited: true,
+    },
+  });
+
+  // Extra room? Promote waitlisted members into the new spots, in order.
+  for (let i = oldCapacity; i < capacity; i++) {
+    await promoteFromWaitlist(id);
+  }
+
+  revalidateSchedule();
+  return { ok: "Class updated (this occurrence only)." };
 }
 
 // One-off cancel of a specific dated class (e.g. a coach is out this Tuesday).

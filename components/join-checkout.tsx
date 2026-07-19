@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
-import { useFormStatus } from "react-dom";
+import Link from "next/link";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { register } from "@/app/actions/auth";
+import { checkPromoCode } from "@/app/actions/promo";
 import { PRICING } from "@/lib/site";
 import { TurnstileWidget } from "@/components/turnstile-widget";
 import { formatUSPhone, isValidEmail, isValidUSPhone } from "@/lib/validation";
@@ -13,42 +14,37 @@ type Plan = "TRIAL" | "FULL" | "SIX_MONTH" | "TWELVE_MONTH";
 const field =
   "w-full rounded-xl border border-oxblood-600/60 bg-ink/60 px-4 py-3.5 text-white placeholder:text-cream/35 focus:border-gold focus:outline-none";
 
-function ExpressButton({
-  label,
-  sub,
-  className,
-  icon,
-}: {
-  label: string;
-  sub: string;
-  className: string;
-  icon: React.ReactNode;
-}) {
-  const { pending } = useFormStatus();
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className={`flex w-full items-center justify-center gap-2.5 rounded-xl py-3.5 font-semibold transition-transform hover:-translate-y-0.5 disabled:opacity-60 ${className}`}
-    >
-      {icon}
-      <span>{pending ? "Processing…" : label}</span>
-      <span className="opacity-60">· {sub}</span>
-    </button>
-  );
-}
+/* ---------------- Square Web Payments SDK ----------------
+   Tokenises card / Apple Pay / Google Pay client-side — raw card data never
+   touches our servers. When NEXT_PUBLIC_SQUARE_APP_ID isn't configured the
+   checkout falls back to demo mode (server payments are stubbed too). */
 
-function CardPayButton({ amount }: { amount: number }) {
-  const { pending } = useFormStatus();
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="font-condensed w-full rounded-xl bg-gold py-4 text-lg font-semibold tracking-widest text-ink uppercase transition-colors hover:bg-bone disabled:opacity-60"
-    >
-      {pending ? "Processing…" : `Pay $${amount} · Start training`}
-    </button>
-  );
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SqPayments = any;
+
+const SQ_APP_ID = process.env.NEXT_PUBLIC_SQUARE_APP_ID ?? "";
+const SQ_LOCATION_ID = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID ?? "";
+const SQ_ENABLED = Boolean(SQ_APP_ID && SQ_LOCATION_ID);
+const SQ_SRC = SQ_APP_ID.startsWith("sandbox-")
+  ? "https://sandbox.web.squarecdn.com/v1/square.js"
+  : "https://web.squarecdn.com/v1/square.js";
+
+function loadSquareSdk(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((window as any).Square) return resolve();
+    const existing = document.querySelector<HTMLScriptElement>(`script[src="${SQ_SRC}"]`);
+    if (existing) {
+      existing.addEventListener("load", () => resolve());
+      existing.addEventListener("error", () => reject(new Error("Square SDK failed to load")));
+      return;
+    }
+    const s = document.createElement("script");
+    s.src = SQ_SRC;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error("Square SDK failed to load"));
+    document.head.appendChild(s);
+  });
 }
 
 function AvatarPicker() {
@@ -134,20 +130,167 @@ const PLAN_OPTIONS: {
 
 export function JoinCheckout({ initialPlan }: { initialPlan: Plan }) {
   const [plan, setPlan] = useState<Plan>(initialPlan);
-  const [state, action] = useActionState(register, undefined);
+  const [state, formAction] = useActionState(register, undefined);
+  const [, startTransition] = useTransition();
+  const formRef = useRef<HTMLFormElement>(null);
+
   const [phone, setPhone] = useState("");
   const [phoneErr, setPhoneErr] = useState<string | null>(null);
   const [emailErr, setEmailErr] = useState<string | null>(null);
+  const [payErr, setPayErr] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Promo code
+  const [promo, setPromo] = useState("");
+  const [promoState, setPromoState] = useState<
+    { status: "idle" } | { status: "ok"; percentOff: number } | { status: "bad"; error: string }
+  >({ status: "idle" });
+  const freePromo = promoState.status === "ok" && promoState.percentOff >= 100;
+
+  // Square SDK state
+  const paymentsRef = useRef<SqPayments>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const cardRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const applePayRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const googlePayRef = useRef<any>(null);
+  const [sdkReady, setSdkReady] = useState(false);
+  const [walletSupport, setWalletSupport] = useState({ apple: false, google: false });
 
   const price = PRICING[plan];
   const isTrial = plan === "TRIAL";
   const amount = price.introCents / 100;
+  const chargeToday = freePromo ? 0 : amount;
+
+  // Initialise Square payments + card element once.
+  useEffect(() => {
+    if (!SQ_ENABLED) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        await loadSquareSdk();
+        if (cancelled) return;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const payments = (window as any).Square.payments(SQ_APP_ID, SQ_LOCATION_ID);
+        paymentsRef.current = payments;
+        const card = await payments.card();
+        await card.attach("#sq-card-container");
+        cardRef.current = card;
+        setSdkReady(true);
+      } catch (e) {
+        console.error("Square SDK init failed:", e);
+        setPayErr("Payment form failed to load. Refresh and try again.");
+      }
+    })();
+    return () => {
+      cancelled = true;
+      cardRef.current?.destroy?.();
+    };
+  }, []);
+
+  // (Re)build wallet buttons whenever the amount changes.
+  useEffect(() => {
+    if (!sdkReady || freePromo) return;
+    let cancelled = false;
+    (async () => {
+      const payments = paymentsRef.current;
+      const req = payments.paymentRequest({
+        countryCode: "US",
+        currencyCode: "USD",
+        total: { amount: chargeToday.toFixed(2), label: "Golden Hill Boxing Club" },
+      });
+      try {
+        const applePay = await payments.applePay(req);
+        if (!cancelled) {
+          applePayRef.current = applePay;
+          setWalletSupport((w) => ({ ...w, apple: true }));
+        }
+      } catch {
+        setWalletSupport((w) => ({ ...w, apple: false }));
+      }
+      try {
+        const googlePay = await payments.googlePay(req);
+        if (!cancelled) {
+          const el = document.getElementById("sq-google-pay");
+          if (el) {
+            el.innerHTML = "";
+            await googlePay.attach("#sq-google-pay", { buttonType: "long" });
+          }
+          googlePayRef.current = googlePay;
+          setWalletSupport((w) => ({ ...w, google: true }));
+        }
+      } catch {
+        setWalletSupport((w) => ({ ...w, google: false }));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [sdkReady, chargeToday, freePromo]);
+
+  function validateContactFields(): boolean {
+    const form = formRef.current;
+    if (!form) return false;
+    if (!form.reportValidity()) return false;
+    const emailVal = (form.elements.namedItem("email") as HTMLInputElement)?.value ?? "";
+    if (!isValidEmail(emailVal)) {
+      setEmailErr("Enter a valid email address.");
+      return false;
+    }
+    if (!isValidUSPhone(phone)) {
+      setPhoneErr("Enter a valid US phone number — (XXX) XXX-XXXX.");
+      return false;
+    }
+    return true;
+  }
+
+  /** Tokenise with the given method and submit the signup server action. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async function payWith(method: any | null) {
+    if (submitting) return;
+    setPayErr(null);
+    if (!validateContactFields()) return;
+    const form = formRef.current!;
+    setSubmitting(true);
+    try {
+      const fd = new FormData(form);
+      fd.set("plan", plan);
+      fd.set("promoCode", promo.trim());
+      if (freePromo) {
+        fd.set("paymentToken", "");
+      } else if (SQ_ENABLED) {
+        if (!method) throw new Error("Payment form not ready yet.");
+        const result = await method.tokenize();
+        if (result.status !== "OK" || !result.token) {
+          throw new Error(
+            result.errors?.[0]?.message ?? "Card details look incomplete — double-check them.",
+          );
+        }
+        fd.set("paymentToken", result.token);
+      } else {
+        fd.set("paymentToken", "sandbox-demo-token"); // demo mode (payments stubbed)
+      }
+      startTransition(() => formAction(fd));
+    } catch (e) {
+      setPayErr(e instanceof Error ? e.message : "Payment failed. Try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function applyPromo() {
+    const res = await checkPromoCode(promo);
+    setPromoState(
+      res.valid
+        ? { status: "ok", percentOff: res.percentOff }
+        : { status: "bad", error: res.error },
+    );
+  }
 
   return (
-    <form action={action} className="flex flex-col gap-6">
+    <form ref={formRef} onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-6">
       <input type="hidden" name="plan" value={plan} />
-      {/* TODO(stage 6): replaced by a real Square Web Payments SDK token. */}
-      <input type="hidden" name="paymentToken" value="sandbox-demo-token" />
 
       {isTrial ? (
         /* Trial checkout — the "last stand" path, reached from the trial section. */
@@ -265,40 +408,132 @@ export function JoinCheckout({ initialPlan }: { initialPlan: Plan }) {
 
       <AvatarPicker />
 
+      {/* Promo code */}
+      <div>
+        <div className="flex gap-2">
+          <input
+            name="promoCode"
+            placeholder="Promo code (optional)"
+            value={promo}
+            onChange={(e) => {
+              setPromo(e.target.value.toUpperCase());
+              setPromoState({ status: "idle" });
+            }}
+            className={field}
+          />
+          <button
+            type="button"
+            onClick={applyPromo}
+            disabled={!promo.trim()}
+            className="font-condensed shrink-0 rounded-xl border border-gold/50 px-4 text-xs tracking-widest text-gold uppercase transition-colors hover:bg-gold hover:text-ink disabled:opacity-40"
+          >
+            Apply
+          </button>
+        </div>
+        {promoState.status === "ok" && (
+          <p className="mt-1.5 text-sm text-gold">
+            {promoState.percentOff >= 100
+              ? "Code applied — your membership is free. 🥊"
+              : `Code applied — ${promoState.percentOff}% off.`}
+          </p>
+        )}
+        {promoState.status === "bad" && (
+          <p className="mt-1.5 text-sm text-blood">{promoState.error}</p>
+        )}
+      </div>
+
+      {/* Liability waiver — required for BOTH membership and trial signups. */}
+      <label className="flex items-start gap-3 text-sm text-cream/75">
+        <input
+          type="checkbox"
+          name="waiver"
+          required
+          className="mt-1 size-4 shrink-0 accent-[#d6ab63]"
+        />
+        <span>
+          I have read and agree to the{" "}
+          <Link href="/waiver" target="_blank" className="text-gold underline underline-offset-4">
+            liability waiver &amp; terms
+          </Link>
+          .
+        </span>
+      </label>
+
       {/* Bot protection — must sit above the pay buttons so its injected token
           guards every checkout path (renders nothing until Turnstile is keyed). */}
       <TurnstileWidget />
 
-      {/* Express checkout — Apple Pay & Google Pay only (no Cash App). */}
-      <div className="grid gap-2.5">
-        <ExpressButton
-          label="Apple Pay"
-          sub="1 tap"
-          className="bg-white text-black"
-          icon={<span className="text-lg"></span>}
-        />
-        <ExpressButton
-          label="Google Pay"
-          sub="1 tap"
-          className="border border-cream/20 bg-[#111] text-white"
-          icon={<span className="font-bold text-lg">G</span>}
-        />
-      </div>
-
-      {/* Card entry — always visible inline (never hidden behind a dropdown). */}
-      <div className="grid gap-3">
-        <p className="font-condensed text-center text-xs tracking-widest text-cream/50 uppercase">
-          Or pay with card
-        </p>
-        <div className="rounded-xl border border-cream/15 bg-white/95 p-3">
-          <input className="w-full bg-transparent text-sm text-stone-800 outline-none placeholder:text-stone-400" placeholder="Card number" inputMode="numeric" />
-          <div className="mt-2 flex gap-4 border-t border-stone-200 pt-2 text-sm text-stone-800">
-            <input className="w-20 bg-transparent outline-none placeholder:text-stone-400" placeholder="MM/YY" />
-            <input className="w-16 bg-transparent outline-none placeholder:text-stone-400" placeholder="CVV" />
+      {freePromo ? (
+        <button
+          type="button"
+          onClick={() => payWith(null)}
+          disabled={submitting}
+          className="font-condensed w-full rounded-xl bg-gold py-4 text-lg font-semibold tracking-widest text-ink uppercase transition-colors hover:bg-bone disabled:opacity-60"
+        >
+          {submitting ? "Creating account…" : "Join free · Start training"}
+        </button>
+      ) : (
+        <>
+          {/* Express checkout — Apple Pay & Google Pay only (no Cash App). */}
+          <div className="grid gap-2.5">
+            {(!SQ_ENABLED || walletSupport.apple) && (
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => payWith(applePayRef.current)}
+                className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-white py-3.5 font-semibold text-black transition-transform hover:-translate-y-0.5 disabled:opacity-60"
+              >
+                <span className="text-lg"></span>
+                <span>{submitting ? "Processing…" : "Apple Pay"}</span>
+              </button>
+            )}
+            {SQ_ENABLED && (
+              <div
+                id="sq-google-pay"
+                onClick={() => !submitting && payWith(googlePayRef.current)}
+                className={walletSupport.google ? "" : "hidden"}
+              />
+            )}
+            {!SQ_ENABLED && (
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => payWith(googlePayRef.current)}
+                className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-cream/20 bg-[#111] py-3.5 font-semibold text-white transition-transform hover:-translate-y-0.5 disabled:opacity-60"
+              >
+                <span className="font-bold text-lg">G</span>
+                <span>{submitting ? "Processing…" : "Google Pay"}</span>
+              </button>
+            )}
           </div>
-        </div>
-        <CardPayButton amount={amount} />
-      </div>
+
+          {/* Card entry — always visible inline (never hidden behind a dropdown). */}
+          <div className="grid gap-3">
+            <p className="font-condensed text-center text-xs tracking-widest text-cream/50 uppercase">
+              Or pay with card
+            </p>
+            {SQ_ENABLED ? (
+              <div id="sq-card-container" className="rounded-xl bg-white/95 p-2" />
+            ) : (
+              <div className="rounded-xl border border-cream/15 bg-white/95 p-3">
+                <input className="w-full bg-transparent text-sm text-stone-800 outline-none placeholder:text-stone-400" placeholder="Card number" inputMode="numeric" />
+                <div className="mt-2 flex gap-4 border-t border-stone-200 pt-2 text-sm text-stone-800">
+                  <input className="w-20 bg-transparent outline-none placeholder:text-stone-400" placeholder="MM/YY" />
+                  <input className="w-16 bg-transparent outline-none placeholder:text-stone-400" placeholder="CVV" />
+                </div>
+              </div>
+            )}
+            <button
+              type="button"
+              disabled={submitting || (SQ_ENABLED && !sdkReady)}
+              onClick={() => payWith(cardRef.current)}
+              className="font-condensed w-full rounded-xl bg-gold py-4 text-lg font-semibold tracking-widest text-ink uppercase transition-colors hover:bg-bone disabled:opacity-60"
+            >
+              {submitting ? "Processing…" : `Pay $${chargeToday} · Start training`}
+            </button>
+          </div>
+        </>
+      )}
 
       {/* Discount eligibility — informational, never blocks checkout. */}
       <p className="rounded-xl border border-oxblood-600/50 bg-ink/40 px-4 py-3 text-center text-xs leading-relaxed text-cream/55">
@@ -307,16 +542,20 @@ export function JoinCheckout({ initialPlan }: { initialPlan: Plan }) {
         price.
       </p>
 
-      {state?.error && (
-        <p className="rounded-lg bg-blood/15 px-4 py-3 text-sm text-blood">{state.error}</p>
+      {(payErr || state?.error) && (
+        <p className="rounded-lg bg-blood/15 px-4 py-3 text-sm text-blood">
+          {payErr ?? state?.error}
+        </p>
       )}
 
       <p className="text-center text-xs leading-relaxed text-cream/40">
-        {isTrial
-          ? `$${amount} today — a one-time drop-in. No membership starts, cancel nothing. Secured by Square (sandbox).`
-          : plan === "FULL"
-            ? `$${amount} today, then $${PRICING.FULL.recurringCents / 100}/mo. Cancel anytime · no contract · secured by Square (sandbox).`
-            : `$${amount} today — one payment, no auto-renewal. Secured by Square (sandbox).`}
+        {freePromo
+          ? "No charge today — your promo code covers your membership."
+          : isTrial
+            ? `$${amount} today — a one-time drop-in. No membership starts, cancel nothing. Secured by Square.`
+            : plan === "FULL"
+              ? `$${amount} today, then $${PRICING.FULL.recurringCents / 100}/mo. Cancel anytime · no contract · secured by Square.`
+              : `$${amount} today — one payment, no auto-renewal. Secured by Square.`}
       </p>
     </form>
   );

@@ -1,21 +1,11 @@
-"use client";
-
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import {
-  assignSubstitute,
-  clearSubstitute,
-  toggleAttendance,
-} from "@/app/actions/coach";
 
 export type RosterMember = {
   bookingId: string;
-  name: string;
+  firstName: string;
   email: string;
   phone: string | null;
   image: string | null;
-  attended: boolean;
 };
 
 export type CoachSession = {
@@ -29,6 +19,7 @@ export type CoachSession = {
   iAmScheduled: boolean;
   iAmSub: boolean;
   roster: RosterMember[];
+  waitlistCount: number;
 };
 
 function whenLabel(startISO: string, endISO: string) {
@@ -63,88 +54,46 @@ function Avatar({ name, image }: { name: string; image: string | null }) {
   );
 }
 
-function SubControls({
-  s,
-  otherCoaches,
-  busy,
-  run,
+// Subtle, always-visible mailto/tel affordances — small glyphs, not buttons.
+function ContactIcons({
+  name,
+  email,
+  phone,
 }: {
-  s: CoachSession;
-  otherCoaches: { id: string; name: string }[];
-  busy: boolean;
-  run: (fn: () => Promise<{ ok: boolean; error?: string }>) => void;
+  name: string;
+  email: string;
+  phone: string | null;
 }) {
-  const [pick, setPick] = useState("");
-
-  if (s.subCoachName) {
-    return (
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-gold/40 bg-gold/10 px-3 py-2 text-sm">
-        <span className="text-gold">
-          {s.iAmSub && !s.iAmScheduled
-            ? `You're covering for ${s.scheduledCoachName ?? "another coach"}`
-            : `Covered by ${s.subCoachName}`}
-        </span>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => run(() => clearSubstitute(s.id))}
-          className="font-condensed ml-auto rounded-full border border-gold/60 px-3 py-1 text-xs tracking-widest text-gold uppercase hover:bg-gold hover:text-ink disabled:opacity-50"
-        >
-          Cancel cover
-        </button>
-      </div>
-    );
-  }
-
-  if (!s.iAmScheduled) return null;
-
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-oxblood-600/50 bg-ink/40 px-3 py-2 text-sm">
-      <span className="text-cream/70">Need time off? Assign cover:</span>
-      <select
-        value={pick}
-        onChange={(e) => setPick(e.target.value)}
-        className="rounded-lg border border-oxblood-600/60 bg-ink/60 px-2 py-1 text-sm text-cream focus:border-gold focus:outline-none"
+    <div className="ml-auto flex shrink-0 items-center gap-1 text-cream/35">
+      <a
+        href={`mailto:${email}`}
+        title={email}
+        aria-label={`Email ${name}`}
+        className="rounded-full p-1.5 transition-colors hover:bg-ink/60 hover:text-gold"
       >
-        <option value="" className="bg-ink">Choose a coach…</option>
-        {otherCoaches.map((c) => (
-          <option key={c.id} value={c.id} className="bg-ink">
-            {c.name}
-          </option>
-        ))}
-      </select>
-      <button
-        type="button"
-        disabled={busy || !pick}
-        onClick={() => run(() => assignSubstitute(s.id, pick))}
-        className="font-condensed rounded-full bg-gold px-4 py-1 text-xs font-semibold tracking-widest text-ink uppercase hover:bg-bone disabled:opacity-50"
-      >
-        Assign cover
-      </button>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="m4 6 8 7 8-7" />
+        </svg>
+      </a>
+      {phone && (
+        <a
+          href={`tel:${phone}`}
+          title={phone}
+          aria-label={`Call ${name}`}
+          className="rounded-full p-1.5 transition-colors hover:bg-ink/60 hover:text-gold"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C11.6 21 3 12.4 3 2c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1L6.6 10.8Z" />
+          </svg>
+        </a>
+      )}
     </div>
   );
 }
 
-function SessionCard({
-  s,
-  otherCoaches,
-}: {
-  s: CoachSession;
-  otherCoaches: { id: string; name: string }[];
-}) {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-
-  function run(fn: () => Promise<{ ok: boolean; error?: string }>) {
-    setError(null);
-    startTransition(async () => {
-      const res = await fn();
-      if (res.ok) router.refresh();
-      else setError(res.error ?? "Something went wrong.");
-    });
-  }
-
+function SessionCard({ s }: { s: CoachSession }) {
   return (
     <div className="rounded-3xl border border-oxblood-600/50 bg-gradient-to-br from-oxblood/40 to-ink p-5">
       <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
@@ -160,15 +109,22 @@ function SessionCard({
           <p className="font-condensed text-sm tracking-wide text-cream/55">
             {whenLabel(s.startISO, s.endISO)}
           </p>
+          {s.iAmScheduled && s.subCoachName && (
+            <p className="mt-1 text-xs text-gold/80">
+              Covered by {s.subCoachName} this week
+            </p>
+          )}
         </div>
-        <span className="font-condensed rounded-full bg-ink/60 px-3 py-1 text-sm tracking-widest text-cream/80 uppercase">
-          {s.roster.length} / {s.capacity} booked
+        <span
+          className="font-condensed rounded-full bg-ink/60 px-3 py-1 text-sm tracking-widest text-cream/80 uppercase"
+          aria-label={`${s.roster.length} of ${s.capacity} spots booked${
+            s.waitlistCount > 0 ? `, ${s.waitlistCount} on the waitlist` : ""
+          }`}
+        >
+          {s.roster.length}/{s.capacity}
+          {s.waitlistCount > 0 && ` · ${s.waitlistCount} waiting`}
         </span>
       </div>
-
-      <SubControls s={s} otherCoaches={otherCoaches} busy={pending} run={run} />
-
-      {error && <p className="mt-2 text-sm text-blood">{error}</p>}
 
       {/* Roster */}
       {s.roster.length === 0 ? (
@@ -176,27 +132,12 @@ function SessionCard({
       ) : (
         <ul className="mt-3 divide-y divide-oxblood-600/40">
           {s.roster.map((m) => (
-            <li key={m.bookingId} className="flex flex-wrap items-center gap-3 py-2.5">
-              <Avatar name={m.name} image={m.image} />
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-bone">{m.name}</p>
-                <p className="truncate text-xs text-cream/45">
-                  {m.email}
-                  {m.phone && ` · ${m.phone}`}
-                </p>
-              </div>
-              <button
-                type="button"
-                disabled={pending}
-                onClick={() => run(() => toggleAttendance(m.bookingId, !m.attended))}
-                className={`font-condensed rounded-full border px-3 py-1 text-xs tracking-widest uppercase transition-colors disabled:opacity-50 ${
-                  m.attended
-                    ? "border-gold bg-gold text-ink"
-                    : "border-oxblood-600/60 text-cream/70 hover:border-gold hover:text-gold"
-                }`}
-              >
-                {m.attended ? "Attended ✓" : "Mark attended"}
-              </button>
+            <li key={m.bookingId} className="flex items-center gap-3 py-2.5">
+              <Avatar name={m.firstName} image={m.image} />
+              <p className="min-w-0 flex-1 truncate font-medium text-bone">
+                {m.firstName}
+              </p>
+              <ContactIcons name={m.firstName} email={m.email} phone={m.phone} />
             </li>
           ))}
         </ul>
@@ -207,16 +148,19 @@ function SessionCard({
 
 export function CoachDashboard({
   sessions,
-  otherCoaches,
+  weekLabel,
 }: {
   sessions: CoachSession[];
-  otherCoaches: { id: string; name: string }[];
+  weekLabel: string;
 }) {
   if (sessions.length === 0) {
     return (
       <section className="rounded-3xl border border-oxblood-600/50 bg-oxblood/20 p-8 text-center">
-        <p className="text-cream/55">
-          You have no upcoming classes in the next two weeks.
+        <p className="font-condensed text-sm tracking-[0.3em] text-gold uppercase">
+          {weekLabel}
+        </p>
+        <p className="mt-2 text-cream/55">
+          You have no classes scheduled this week.
         </p>
       </section>
     );
@@ -224,9 +168,14 @@ export function CoachDashboard({
 
   return (
     <section className="grid gap-4">
-      <h2 className="font-poster text-3xl text-bone">Your upcoming classes</h2>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h2 className="font-poster text-3xl text-bone">Your classes</h2>
+        <p className="font-condensed text-sm tracking-widest text-cream/55 uppercase">
+          {weekLabel}
+        </p>
+      </div>
       {sessions.map((s) => (
-        <SessionCard key={s.id} s={s} otherCoaches={otherCoaches} />
+        <SessionCard key={s.id} s={s} />
       ))}
     </section>
   );
