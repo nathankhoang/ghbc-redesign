@@ -34,12 +34,6 @@ export function StickyCta() {
             </p>
             <div className="flex items-center gap-2">
               <Link
-                href="/join?type=trial"
-                className="font-condensed rounded-full border border-cream/40 px-4 py-2 text-xs tracking-widest text-cream uppercase transition-colors hover:border-gold hover:text-gold sm:px-5 sm:text-sm"
-              >
-                $20 trial
-              </Link>
-              <Link
                 href="/join"
                 className="font-condensed rounded-full bg-gold px-5 py-2 text-xs font-semibold tracking-widest text-ink uppercase transition-colors hover:bg-bone sm:px-6 sm:text-sm"
               >

@@ -8,10 +8,10 @@ import { sendBookingConfirmation } from "@/lib/email";
 
 export type BookingResult = { ok: boolean; error?: string };
 
-// A $20 trial covers a single class. Once a trial member has an active booking
+// A trial covers a single class. Once a trial member has an active booking
 // for any other session, they must become a member to book more.
 const TRIAL_UPGRADE_MSG =
-  "Your $20 trial covers one class. Become a member to book more — we'd love to have you!";
+  "Your trial covers one class. Become a member to book more — we'd love to have you!";
 
 function revalidate() {
   revalidatePath("/schedule");

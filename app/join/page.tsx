@@ -11,10 +11,10 @@ export default async function JoinPage({
   const { type, plan } = await searchParams;
   const initialPlan =
     type === "trial" || plan === "TRIAL"
-      ? "TRIAL"
-      : type === "yoga" || plan === "YOGA"
-        ? "YOGA"
-        : "FULL";
+      ? ("TRIAL" as const)
+      : plan === "SIX_MONTH" || plan === "TWELVE_MONTH"
+        ? (plan as "SIX_MONTH" | "TWELVE_MONTH")
+        : ("FULL" as const);
 
   return (
     <main className="min-h-screen bg-[radial-gradient(120%_100%_at_50%_0%,#3a1513_0%,#1a0e0c_60%)]">
@@ -38,7 +38,7 @@ export default async function JoinPage({
               <>
                 One class.
                 <br />
-                Twenty bucks.
+                Twenty-five bucks.
               </>
             ) : (
               <>
@@ -50,12 +50,16 @@ export default async function JoinPage({
           </h1>
           <div className="mt-8">
             <div className="font-poster poster-shadow text-[clamp(4rem,14vw,8rem)] leading-none text-bone">
-              ${(initialPlan === "TRIAL" ? PRICING.TRIAL : PRICING.FULL).introCents / 100}
+              ${PRICING[initialPlan].introCents / 100}
             </div>
             <p className="font-condensed mt-1 tracking-wide text-cream/60">
               {initialPlan === "TRIAL"
                 ? "single drop-in · no membership · no auto-renewal"
-                : `first month · then $${PRICING.FULL.recurringCents / 100}/mo · no contract`}
+                : initialPlan === "SIX_MONTH"
+                  ? `6 months prepaid · save $${PRICING.SIX_MONTH.saveCents / 100}`
+                  : initialPlan === "TWELVE_MONTH"
+                    ? `12 months prepaid · save $${PRICING.TWELVE_MONTH.saveCents / 100}`
+                    : `first month · then $${PRICING.FULL.recurringCents / 100}/mo · no contract`}
             </p>
           </div>
           <ul className="mt-8 grid gap-3">
@@ -82,7 +86,7 @@ export default async function JoinPage({
               <>
                 Just testing the waters?{" "}
                 <Link href="/join?type=trial" className="text-gold underline underline-offset-4">
-                  Try one class for $20
+                  Try one class — ${PRICING.TRIAL.introCents / 100}
                 </Link>
                 .
               </>

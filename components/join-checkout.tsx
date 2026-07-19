@@ -6,16 +6,10 @@ import { register } from "@/app/actions/auth";
 import { PRICING } from "@/lib/site";
 import { TurnstileWidget } from "@/components/turnstile-widget";
 
-type Plan = "TRIAL" | "FULL" | "YOGA";
+type Plan = "TRIAL" | "FULL" | "SIX_MONTH" | "TWELVE_MONTH";
 
 const field =
   "w-full rounded-xl border border-oxblood-600/60 bg-ink/60 px-4 py-3.5 text-cream placeholder:text-cream/35 focus:border-gold focus:outline-none";
-
-const PLAN_LABEL: Record<Plan, string> = {
-  TRIAL: "Trial",
-  FULL: "Full",
-  YOGA: "Yoga",
-};
 
 function ExpressButton({
   label,
@@ -104,47 +98,119 @@ function AvatarPicker() {
   );
 }
 
+/* Membership plan options shown in the picker (trial is NOT one of them —
+   it lives only in the small "testing the waters" line below). */
+const PLAN_OPTIONS: {
+  key: Exclude<Plan, "TRIAL">;
+  title: string;
+  price: number;
+  sub: string;
+  badge?: string;
+}[] = [
+  {
+    key: "FULL",
+    title: "First month",
+    price: PRICING.FULL.introCents / 100,
+    sub: `then $${PRICING.FULL.recurringCents / 100}/mo · no contract`,
+    badge: "Most popular",
+  },
+  {
+    key: "SIX_MONTH",
+    title: "6 months",
+    price: PRICING.SIX_MONTH.introCents / 100,
+    sub: "one payment · 6 months of training",
+    badge: `Save $${PRICING.SIX_MONTH.saveCents / 100}`,
+  },
+  {
+    key: "TWELVE_MONTH",
+    title: "12 months",
+    price: PRICING.TWELVE_MONTH.introCents / 100,
+    sub: "one payment · a full year",
+    badge: `Save $${PRICING.TWELVE_MONTH.saveCents / 100}`,
+  },
+];
+
 export function JoinCheckout({ initialPlan }: { initialPlan: Plan }) {
   const [plan, setPlan] = useState<Plan>(initialPlan);
-  const [showCard, setShowCard] = useState(false);
   const [state, action] = useActionState(register, undefined);
 
-  const price =
-    plan === "TRIAL" ? PRICING.TRIAL : plan === "YOGA" ? PRICING.YOGA : PRICING.FULL;
+  const price = PRICING[plan];
   const isTrial = plan === "TRIAL";
+  const amount = price.introCents / 100;
 
   return (
     <form action={action} className="flex flex-col gap-6">
       <input type="hidden" name="plan" value={plan} />
+      {/* TODO(stage 6): replaced by a real Square Web Payments SDK token. */}
       <input type="hidden" name="paymentToken" value="sandbox-demo-token" />
 
-      {/* Plan toggle — Trial / Full / Yoga */}
-      <div className="grid grid-cols-3 gap-2 rounded-xl bg-ink/50 p-1">
-        {(["TRIAL", "FULL", "YOGA"] as const).map((p) => (
+      {isTrial ? (
+        /* Trial checkout — the "last stand" path, reached from the trial section. */
+        <div>
+          <div className="font-poster poster-shadow text-[clamp(2.75rem,10vw,4.5rem)] leading-none text-bone">
+            ${amount}
+          </div>
+          <p className="font-condensed mt-1 tracking-wide text-cream/60">
+            one class · no membership · no auto-renewal
+          </p>
           <button
-            key={p}
             type="button"
-            onClick={() => setPlan(p)}
-            className={`font-condensed rounded-lg py-2.5 text-sm tracking-widest uppercase transition-colors ${
-              plan === p ? "bg-gold text-ink" : "text-cream/60 hover:text-cream"
-            }`}
+            onClick={() => setPlan("FULL")}
+            className="mt-3 text-sm text-gold underline underline-offset-4"
           >
-            {PLAN_LABEL[p]}
+            ← Back to membership options
           </button>
-        ))}
-      </div>
-
-      {/* Plan headline */}
-      <div>
-        <div className="font-poster poster-shadow text-[clamp(2.75rem,10vw,4.5rem)] leading-none text-bone">
-          ${price.introCents / 100}
         </div>
-        <p className="font-condensed mt-1 tracking-wide text-cream/60">
-          {isTrial
-            ? "one class · no membership · no auto-renewal"
-            : `first month · then $${price.recurringCents / 100}/mo · no contract`}
-        </p>
-      </div>
+      ) : (
+        <>
+          {/* Plan picker — $99 intro is primary; prepays show their savings. */}
+          <div className="grid gap-2.5">
+            {PLAN_OPTIONS.map((o) => (
+              <button
+                key={o.key}
+                type="button"
+                onClick={() => setPlan(o.key)}
+                aria-pressed={plan === o.key}
+                className={`relative rounded-2xl border p-4 text-left transition-colors ${
+                  plan === o.key
+                    ? "border-gold bg-gold/10"
+                    : "border-oxblood-600/60 bg-ink/40 hover:border-gold/50"
+                }`}
+              >
+                {o.badge && (
+                  <span
+                    className={`font-condensed absolute -top-2.5 right-4 rounded-full px-2.5 py-0.5 text-[10px] font-semibold tracking-widest uppercase ${
+                      o.key === "FULL" ? "bg-gold text-ink" : "bg-bronze text-ink"
+                    }`}
+                  >
+                    {o.badge}
+                  </span>
+                )}
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="font-condensed text-sm tracking-widest text-cream/80 uppercase">
+                    {o.title}
+                  </span>
+                  <span className="font-poster text-3xl text-bone">${o.price}</span>
+                </div>
+                <p className="font-condensed mt-1 text-xs tracking-wide text-cream/55">{o.sub}</p>
+              </button>
+            ))}
+          </div>
+
+          {/* The only trial mention at checkout — small, secondary. */}
+          <p className="text-center text-xs text-cream/45">
+            Just testing the waters?{" "}
+            <button
+              type="button"
+              onClick={() => setPlan("TRIAL")}
+              className="text-gold underline underline-offset-4"
+            >
+              Try one class — ${PRICING.TRIAL.introCents / 100}
+            </button>
+            .
+          </p>
+        </>
+      )}
 
       {/* Details */}
       <div className="grid gap-3">
@@ -160,7 +226,7 @@ export function JoinCheckout({ initialPlan }: { initialPlan: Plan }) {
           guards every checkout path (renders nothing until Turnstile is keyed). */}
       <TurnstileWidget />
 
-      {/* Express checkout — one tap */}
+      {/* Express checkout — Apple Pay & Google Pay only (no Cash App). */}
       <div className="grid gap-2.5">
         <ExpressButton
           label="Apple Pay"
@@ -174,36 +240,29 @@ export function JoinCheckout({ initialPlan }: { initialPlan: Plan }) {
           className="border border-cream/20 bg-[#111] text-white"
           icon={<span className="font-bold text-lg">G</span>}
         />
-        <ExpressButton
-          label="Cash App Pay"
-          sub="1 tap"
-          className="bg-[#00D632] text-black"
-          icon={<span className="font-bold">$</span>}
-        />
       </div>
 
-      {/* Card fallback */}
-      <div>
-        <button
-          type="button"
-          onClick={() => setShowCard((v) => !v)}
-          className="font-condensed w-full text-center text-xs tracking-widest text-cream/50 uppercase hover:text-gold"
-        >
-          {showCard ? "▲ Hide card" : "▾ Or pay with card"}
-        </button>
-        {showCard && (
-          <div className="mt-3 grid gap-3">
-            <div className="rounded-xl border border-cream/15 bg-white/95 p-3">
-              <input className="w-full bg-transparent text-sm text-stone-800 outline-none placeholder:text-stone-400" placeholder="Card number" inputMode="numeric" />
-              <div className="mt-2 flex gap-4 border-t border-stone-200 pt-2 text-sm text-stone-800">
-                <input className="w-20 bg-transparent outline-none placeholder:text-stone-400" placeholder="MM/YY" />
-                <input className="w-16 bg-transparent outline-none placeholder:text-stone-400" placeholder="CVV" />
-              </div>
-            </div>
-            <CardPayButton amount={price.introCents / 100} />
+      {/* Card entry — always visible inline (never hidden behind a dropdown). */}
+      <div className="grid gap-3">
+        <p className="font-condensed text-center text-xs tracking-widest text-cream/50 uppercase">
+          Or pay with card
+        </p>
+        <div className="rounded-xl border border-cream/15 bg-white/95 p-3">
+          <input className="w-full bg-transparent text-sm text-stone-800 outline-none placeholder:text-stone-400" placeholder="Card number" inputMode="numeric" />
+          <div className="mt-2 flex gap-4 border-t border-stone-200 pt-2 text-sm text-stone-800">
+            <input className="w-20 bg-transparent outline-none placeholder:text-stone-400" placeholder="MM/YY" />
+            <input className="w-16 bg-transparent outline-none placeholder:text-stone-400" placeholder="CVV" />
           </div>
-        )}
+        </div>
+        <CardPayButton amount={amount} />
       </div>
+
+      {/* Discount eligibility — informational, never blocks checkout. */}
+      <p className="rounded-xl border border-oxblood-600/50 bg-ink/40 px-4 py-3 text-center text-xs leading-relaxed text-cream/55">
+        Are you a first responder, active military, teacher, or in the same household as a
+        member? After signing up, let one of your coaches know to get a discounted monthly
+        price.
+      </p>
 
       {state?.error && (
         <p className="rounded-lg bg-blood/15 px-4 py-3 text-sm text-blood">{state.error}</p>
@@ -211,8 +270,10 @@ export function JoinCheckout({ initialPlan }: { initialPlan: Plan }) {
 
       <p className="text-center text-xs leading-relaxed text-cream/40">
         {isTrial
-          ? "$20 today — a one-time drop-in. No membership starts, cancel nothing. Secured by Square (sandbox)."
-          : `$${price.introCents / 100} today, then $${price.recurringCents / 100}/mo. Cancel anytime · no contract · secured by Square (sandbox).`}
+          ? `$${amount} today — a one-time drop-in. No membership starts, cancel nothing. Secured by Square (sandbox).`
+          : plan === "FULL"
+            ? `$${amount} today, then $${PRICING.FULL.recurringCents / 100}/mo. Cancel anytime · no contract · secured by Square (sandbox).`
+            : `$${amount} today — one payment, no auto-renewal. Secured by Square (sandbox).`}
       </p>
     </form>
   );

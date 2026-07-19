@@ -3,11 +3,11 @@ import { GYM, PRICING } from "@/lib/constants";
 
 export { GYM, PRICING };
 
+// Per the 2026 feedback pass: no "Pricing" link — the $99 offer lives in the hero.
 export const NAV = [
   { label: "Classes", href: "#classes" },
   { label: "Coaches", href: "/coaches" },
   { label: "Schedule", href: "/schedule" },
-  { label: "Pricing", href: "#pricing" },
 ];
 
 export const STATS: { value: string; label: string; star?: boolean }[] = [
@@ -48,15 +48,41 @@ export const CLASSES = [
   },
 ];
 
-// `image` points at a headshot in /public/coaches/ when available; empty = themed
-// filler placeholder that's sized for a real photo to drop in later.
-export const COACHES: { name: string; specialty: string; image?: string }[] = [
-  { name: "Coach Ali", specialty: "Boxing" },
-  { name: "Coach Colton", specialty: "Boxing · Muay Thai" },
-  { name: "Coach Derek", specialty: "Boxing · Muay Thai" },
-  { name: "Coach Jack", specialty: "Boxing · Muay Thai" },
-  { name: "Coach Kyle", specialty: "Boxing · Muay Thai" },
-  { name: "Emily", specialty: "Yoga" },
+// `image` points at a headshot in /public/coaches/ when available — dropping a
+// real photo in is a ONE-LINE change (e.g. image: "/coaches/ali.jpg"). Until
+// then the card shows a themed "Photo coming soon" placeholder.
+// TODO: real photos + final bio copy from the owner.
+export const COACHES: { name: string; specialty: string; bio: string; image?: string }[] = [
+  {
+    name: "Coach Ali",
+    specialty: "Boxing",
+    bio: "Pure sweet science — footwork, defense and crisp combinations. Ali will sharpen your fundamentals from round one.",
+  },
+  {
+    name: "Coach Colton",
+    specialty: "Boxing · Muay Thai",
+    bio: "Equal parts boxing IQ and eight-limbs power. Colton's classes build real conditioning without leaving anyone behind.",
+  },
+  {
+    name: "Coach Derek",
+    specialty: "Boxing · Muay Thai",
+    bio: "Technical, patient, and relentless about the details. Derek meets you at your level and moves you up a notch every class.",
+  },
+  {
+    name: "Coach Jack",
+    specialty: "Boxing · Muay Thai",
+    bio: "High-energy pads and honest coaching. Train with Jack and you'll leave dripping — and smiling.",
+  },
+  {
+    name: "Coach Kyle",
+    specialty: "Boxing · Muay Thai",
+    bio: "From first-day beginners to fight-camp veterans, Kyle's corner advice sticks with you long after the bell.",
+  },
+  {
+    name: "Emily",
+    specialty: "Yoga",
+    bio: "Mobility, breath and recovery — Emily keeps the fighters loose and the rest of us moving better than ever.",
+  },
 ];
 
 // Real 5★ reviews from the gym's Google listing (5.0 · 12 reviews).

@@ -81,15 +81,11 @@ export async function register(
     return { error: "An account with that email already exists." };
   }
 
-  const membershipType =
-    plan === "TRIAL"
-      ? MEMBERSHIP.TRIAL
-      : plan === "YOGA"
-        ? MEMBERSHIP.YOGA
-        : MEMBERSHIP.FULL;
+  // TRIAL and the prepaid blocks are one-time charges; FULL is the $99→$125
+  // subscription. All prepay plans grant the FULL membership experience.
+  const membershipType = plan === "TRIAL" ? MEMBERSHIP.TRIAL : MEMBERSHIP.FULL;
 
-  // Process payment (stubbed unless Square sandbox is configured). Trial is a
-  // one-time $20 charge; Full/Yoga start a recurring subscription.
+  // Process payment (stubbed unless Square sandbox is configured).
   const payment =
     membershipType === MEMBERSHIP.TRIAL
       ? await createTrialCharge({ email, firstName, lastName, membershipType, paymentToken })

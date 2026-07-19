@@ -25,9 +25,7 @@ const paymentsEnabled = process.env.PAYMENTS_ENABLED === "true";
 
 export function introChargeCents(membershipType: string): number {
   if (membershipType === MEMBERSHIP.TRIAL) return PRICING.TRIAL.introCents;
-  return membershipType === MEMBERSHIP.YOGA
-    ? PRICING.YOGA.introCents
-    : PRICING.FULL.introCents;
+  return PRICING.FULL.introCents;
 }
 
 export async function createSubscription(
@@ -54,7 +52,7 @@ export async function createSubscription(
   };
 }
 
-// One-time $20 trial charge (no subscription). Stubbed alongside
+// One-time trial charge (no subscription). Stubbed alongside
 // createSubscription — a TRIAL is a single-class drop-in, not a membership.
 export async function createTrialCharge(
   input: PaymentInput,
@@ -67,7 +65,7 @@ export async function createTrialCharge(
     return { ok: false, error: "Missing payment details." };
   }
 
-  // TODO: real Square Payments.create for a single $20 charge (no plan).
+  // TODO: real Square Payments.create for a single trial charge (no plan).
   return {
     ok: false,
     error: "Live payments are enabled but not yet implemented.",

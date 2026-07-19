@@ -35,6 +35,31 @@
     color: var(--color-cream);
     font-family: var(--font-sans);
     overflow-x: hidden;
+    /* Site copy is non-selectable (no I-beam caret on text). Inputs, textareas,
+       tel/mailto links and dashboard content opt back in below. */
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: default;
+  }
+
+  input,
+  textarea,
+  select,
+  [contenteditable] {
+    user-select: text;
+    -webkit-user-select: text;
+    cursor: text;
+  }
+
+  select {
+    cursor: pointer;
+  }
+
+  /* Contact details stay copyable everywhere. */
+  a[href^="mailto:"],
+  a[href^="tel:"] {
+    user-select: text;
+    -webkit-user-select: text;
   }
 
   ::selection {
@@ -105,6 +130,14 @@
 
   .will-reveal {
     opacity: 0;
+  }
+
+  /* Opt-in selectable region — applied to dashboard surfaces where members,
+     coaches and the owner need to copy emails, phone numbers, etc. */
+  .selectable,
+  .selectable * {
+    user-select: text;
+    -webkit-user-select: text;
   }
 }
 
