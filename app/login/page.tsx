@@ -25,6 +25,15 @@ export default function LoginPage() {
               Join — $99 first month
             </Link>
           </p>
+          {/* Subtle path to the coach/owner login — deliberately low-key. */}
+          <p className="mt-4 text-center">
+            <Link
+              href="/admin-login"
+              className="text-xs text-cream/30 underline-offset-4 hover:text-cream/60 hover:underline"
+            >
+              Admin login
+            </Link>
+          </p>
         </div>
       </div>
     </main>

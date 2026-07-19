@@ -5,11 +5,13 @@ import { useFormStatus } from "react-dom";
 import { register } from "@/app/actions/auth";
 import { PRICING } from "@/lib/site";
 import { TurnstileWidget } from "@/components/turnstile-widget";
+import { formatUSPhone, isValidEmail, isValidUSPhone } from "@/lib/validation";
 
 type Plan = "TRIAL" | "FULL" | "SIX_MONTH" | "TWELVE_MONTH";
 
+// Input text is white on the dark ground (client feedback: no dark-on-dark).
 const field =
-  "w-full rounded-xl border border-oxblood-600/60 bg-ink/60 px-4 py-3.5 text-cream placeholder:text-cream/35 focus:border-gold focus:outline-none";
+  "w-full rounded-xl border border-oxblood-600/60 bg-ink/60 px-4 py-3.5 text-white placeholder:text-cream/35 focus:border-gold focus:outline-none";
 
 function ExpressButton({
   label,
@@ -133,6 +135,9 @@ const PLAN_OPTIONS: {
 export function JoinCheckout({ initialPlan }: { initialPlan: Plan }) {
   const [plan, setPlan] = useState<Plan>(initialPlan);
   const [state, action] = useActionState(register, undefined);
+  const [phone, setPhone] = useState("");
+  const [phoneErr, setPhoneErr] = useState<string | null>(null);
+  const [emailErr, setEmailErr] = useState<string | null>(null);
 
   const price = PRICING[plan];
   const isTrial = plan === "TRIAL";
@@ -212,11 +217,49 @@ export function JoinCheckout({ initialPlan }: { initialPlan: Plan }) {
         </>
       )}
 
-      {/* Details */}
+      {/* Details — all four fields required; email + US phone validated inline. */}
       <div className="grid gap-3">
         <input name="firstName" placeholder="First name" autoComplete="given-name" required className={field} />
-        <input type="tel" name="phone" placeholder="Phone number" autoComplete="tel" required className={field} />
-        <input type="email" name="email" placeholder="Email" autoComplete="email" required className={field} />
+        <div>
+          <input
+            type="tel"
+            name="phone"
+            placeholder="Phone number"
+            autoComplete="tel"
+            required
+            inputMode="tel"
+            value={phone}
+            onChange={(e) => {
+              setPhone(formatUSPhone(e.target.value));
+              if (phoneErr) setPhoneErr(null);
+            }}
+            onBlur={() =>
+              setPhoneErr(
+                phone && !isValidUSPhone(phone)
+                  ? "Enter a valid US phone number — (XXX) XXX-XXXX."
+                  : null,
+              )
+            }
+            className={field}
+          />
+          {phoneErr && <p className="mt-1.5 text-sm text-blood">{phoneErr}</p>}
+        </div>
+        <div>
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            autoComplete="email"
+            required
+            onBlur={(e) => {
+              const v = e.target.value.trim();
+              setEmailErr(v && !isValidEmail(v) ? "Enter a valid email address." : null);
+            }}
+            onChange={() => emailErr && setEmailErr(null)}
+            className={field}
+          />
+          {emailErr && <p className="mt-1.5 text-sm text-blood">{emailErr}</p>}
+        </div>
         <input type="password" name="password" placeholder="Create a password" autoComplete="new-password" minLength={8} required className={field} />
       </div>
 

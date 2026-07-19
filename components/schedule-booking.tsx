@@ -96,15 +96,11 @@ export function ScheduleBooking({
                     <div>
                       <div className="flex items-start justify-between gap-2">
                         <h4 className="font-poster text-2xl text-bone">{c.classType}</h4>
-                        {c.classType === "Open Gym" ? (
-                          <span className="font-condensed shrink-0 rounded-full border border-bronze/40 px-2 py-0.5 text-[10px] tracking-widest text-bronze uppercase">
-                            Drop-in
-                          </span>
-                        ) : !c.started ? (
+                        {!c.started && (
                           <span className="font-condensed shrink-0 rounded-full border border-gold/30 px-2 py-0.5 text-[10px] tracking-widest text-gold uppercase">
                             {c.openSlots} left
                           </span>
-                        ) : null}
+                        )}
                       </div>
                       {c.coachName && <p className="mt-1 text-sm text-cream/60">with {c.coachName}</p>}
                       <p className="font-condensed mt-2 tracking-wide text-cream/80">
@@ -112,27 +108,12 @@ export function ScheduleBooking({
                       </p>
                     </div>
                     <div className="mt-4">
-                      {c.classType === "Open Gym" ? (
-                        <span className="font-condensed block rounded-full border border-bronze/30 bg-bronze/5 py-2 text-center text-sm tracking-widest text-bronze/90 uppercase">
-                          Open mat · just show up
-                        </span>
-                      ) : c.bookedByMe ? (
+                      {c.bookedByMe ? (
                         <span className="font-condensed block rounded-full bg-gold/20 py-2 text-center text-sm tracking-widest text-gold uppercase">Booked ✓</span>
                       ) : c.waitlistedByMe ? (
                         <span className="font-condensed block rounded-full bg-bronze/20 py-2 text-center text-sm tracking-widest text-bronze uppercase">On waitlist</span>
                       ) : c.started ? (
                         <span className="font-condensed block rounded-full bg-ink/60 py-2 text-center text-sm tracking-widest text-cream/30 uppercase">Ended</span>
-                      ) : !authed ? (
-                        <Link
-                          href="/login"
-                          className={`font-condensed block w-full rounded-full py-2 text-center text-sm tracking-widest uppercase transition-colors ${
-                            c.openSlots === 0
-                              ? "border border-bronze/50 text-bronze hover:bg-bronze/10"
-                              : "bg-gold text-ink hover:bg-bone"
-                          }`}
-                        >
-                          {c.openSlots === 0 ? "Join waitlist" : "Book class"}
-                        </Link>
                       ) : (
                         <button
                           type="button"
@@ -155,23 +136,40 @@ export function ScheduleBooking({
         )}
       </div>
 
-      {/* Confirm modal */}
+      {/* Class details / confirm modal. Logged-out visitors can open it to see
+          class details, but the book action prompts them to sign in. */}
       {sel && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm" onClick={() => !pending && setSel(null)}>
           <div className="w-full max-w-sm rounded-3xl border border-oxblood-600/60 bg-oxblood/40 p-7" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-poster text-3xl text-bone">{isWait ? "Join waitlist" : "Confirm booking"}</h3>
+            <h3 className="font-poster text-3xl text-bone">
+              {!authed ? "Class details" : isWait ? "Join waitlist" : "Confirm booking"}
+            </h3>
             <p className="mt-3 text-cream/85">
               {sel.classType}
               {sel.coachName && ` with ${sel.coachName}`}
             </p>
             <p className="text-cream/55">{time(sel.startISO)} – {time(sel.endISO)}</p>
             {isWait && <p className="mt-3 text-sm text-bronze">This class is full — we&apos;ll auto-book you if a spot opens.</p>}
+            {!authed && (
+              <p className="mt-3 text-sm text-cream/60">
+                Sign in or join the club to book this class.
+              </p>
+            )}
             {err && <p className="mt-3 text-sm text-blood">{err}</p>}
             <div className="mt-6 flex gap-3">
-              <button type="button" onClick={() => setSel(null)} disabled={pending} className="font-condensed flex-1 rounded-full border border-cream/30 py-3 text-sm tracking-widest text-cream uppercase disabled:opacity-50">Cancel</button>
-              <button type="button" onClick={confirm} disabled={pending} className="font-condensed flex-1 rounded-full bg-gold py-3 text-sm font-semibold tracking-widest text-ink uppercase hover:bg-bone disabled:opacity-60">
-                {pending ? "…" : isWait ? "Join" : "Confirm"}
-              </button>
+              <button type="button" onClick={() => setSel(null)} disabled={pending} className="font-condensed flex-1 rounded-full border border-cream/30 py-3 text-sm tracking-widest text-cream uppercase disabled:opacity-50">Close</button>
+              {!authed ? (
+                <Link
+                  href="/login"
+                  className="font-condensed flex-1 rounded-full bg-gold py-3 text-center text-sm font-semibold tracking-widest text-ink uppercase hover:bg-bone"
+                >
+                  Log in to book
+                </Link>
+              ) : (
+                <button type="button" onClick={confirm} disabled={pending} className="font-condensed flex-1 rounded-full bg-gold py-3 text-sm font-semibold tracking-widest text-ink uppercase hover:bg-bone disabled:opacity-60">
+                  {pending ? "…" : isWait ? "Join" : "Confirm"}
+                </button>
+              )}
             </div>
           </div>
         </div>

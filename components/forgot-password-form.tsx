@@ -5,7 +5,7 @@ import { useFormStatus } from "react-dom";
 import { requestPasswordReset } from "@/app/actions/auth";
 
 const field =
-  "w-full rounded-xl border border-oxblood-600/60 bg-ink/60 px-4 py-3.5 text-cream placeholder:text-cream/35 focus:border-gold focus:outline-none";
+  "w-full rounded-xl border border-oxblood-600/60 bg-ink/60 px-4 py-3.5 text-white placeholder:text-cream/35 focus:border-gold focus:outline-none";
 
 function Submit() {
   const { pending } = useFormStatus();

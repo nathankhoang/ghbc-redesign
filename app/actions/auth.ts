@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { MEMBERSHIP } from "@/lib/constants";
 import { createSubscription, createTrialCharge } from "@/lib/square";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { formatUSPhone, isValidEmail, isValidUSPhone } from "@/lib/validation";
 import { uploadAvatar } from "@/lib/blob";
 import { sendPasswordReset } from "@/lib/email";
 
@@ -64,6 +65,12 @@ export async function register(
   if (!firstName || !email || !phone || !password) {
     return { error: "Please fill in your name, phone, email and password." };
   }
+  if (!isValidEmail(email)) {
+    return { error: "Please enter a valid email address." };
+  }
+  if (!isValidUSPhone(phone)) {
+    return { error: "Please enter a valid US phone number — (XXX) XXX-XXXX." };
+  }
   if (password.length < 8) {
     return { error: "Password must be at least 8 characters." };
   }
@@ -108,7 +115,7 @@ export async function register(
       firstName,
       lastName,
       email,
-      phone,
+      phone: formatUSPhone(phone),
       image: avatar.url ?? null,
       passwordHash: await bcrypt.hash(password, 10),
       membershipType,

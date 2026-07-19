@@ -51,3 +51,6 @@ next-env.d.ts
 # logs
 devserver.log
 .vercel
+
+# but DO commit the env template
+!.env.example

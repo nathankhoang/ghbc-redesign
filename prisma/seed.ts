@@ -23,6 +23,7 @@ type Slot = {
 
 // Weekly schedule transcribed from goldenhillboxingclub.classy.sh. Kept as the
 // seed baseline; the owner can tweak times, coaches, and capacities in-app.
+// TODO: confirm times with owner — this transcription may be out of date.
 const SLOTS: Slot[] = [
   // Sunday
   { day: 0, type: BOXING, coach: "Coach Ali", start: t(9), end: t(10), cap: 10 },
