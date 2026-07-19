@@ -2,16 +2,23 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { Reveal, SplitWords } from "@/components/motion";
+import { TrackOnce } from "@/components/track-once";
 
 export const dynamic = "force-dynamic";
 
-export default async function WelcomePage() {
+export default async function WelcomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ joined?: string }>;
+}) {
   const session = await auth();
   if (!session?.user?.id) redirect("/join");
   const name = session.user.firstName || "fighter";
+  const { joined } = await searchParams;
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[radial-gradient(120%_100%_at_50%_0%,#3a1513_0%,#1a0e0c_60%)] px-5 py-16 text-center">
+      {joined && <TrackOnce event="checkout_completed" data={{ plan: joined }} />}
       <div className="max-w-2xl">
         <Reveal className="font-condensed mb-4 text-sm tracking-[0.4em] text-gold uppercase">
           You&apos;re in the club

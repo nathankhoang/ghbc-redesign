@@ -1,9 +1,10 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { BOOKING_STATUS } from "@/lib/constants";
-import { addDays, getWeekSessions, isSameDay, parseWeekParam, weekDays, weekParam } from "@/lib/schedule";
+import { addDays, getWeekSessions, isSameDay, parseWeekParam, tzParts, weekDays, weekParam } from "@/lib/schedule";
 import { AppHeader } from "@/components/app-header";
 import { ScheduleBooking, type Day } from "@/components/schedule-booking";
+import { TrackOnce } from "@/components/track-once";
 
 export const dynamic = "force-dynamic";
 
@@ -14,13 +15,13 @@ const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct
 export default async function SchedulePage({
   searchParams,
 }: {
-  searchParams: Promise<{ week?: string }>;
+  searchParams: Promise<{ week?: string; joined?: string }>;
 }) {
   // Anyone can view the schedule; booking still requires an account.
   const session = await auth();
   const userId = session?.user?.id ?? null;
 
-  const { week } = await searchParams;
+  const { week, joined } = await searchParams;
   const weekStart = parseWeekParam(week);
   const sessions = await getWeekSessions(weekStart);
 
@@ -40,7 +41,7 @@ export default async function SchedulePage({
   const now = new Date();
   const days: Day[] = weekDays(weekStart).map((day, i) => ({
     label: SHORT[i],
-    full: `${FULL[i]}, ${MON[day.getMonth()]} ${day.getDate()}`,
+    full: `${FULL[i]}, ${MON[tzParts(day).m - 1]} ${tzParts(day).d}`,
     isToday: isSameDay(day, now),
     classes: sessions
       .filter((s) => isSameDay(s.startAt, day))
@@ -58,10 +59,13 @@ export default async function SchedulePage({
   }));
 
   const weekEnd = addDays(weekStart, 6);
-  const rangeLabel = `${MON[weekStart.getMonth()]} ${weekStart.getDate()} – ${MON[weekEnd.getMonth()]} ${weekEnd.getDate()}`;
+  const ws = tzParts(weekStart);
+  const we = tzParts(weekEnd);
+  const rangeLabel = `${MON[ws.m - 1]} ${ws.d} – ${MON[we.m - 1]} ${we.d}`;
 
   return (
     <>
+      {joined === "TRIAL" && <TrackOnce event="checkout_completed" data={{ plan: "TRIAL" }} />}
       <AppHeader />
       <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
         <p className="font-condensed mb-2 text-sm tracking-[0.35em] text-gold uppercase">Book a class</p>

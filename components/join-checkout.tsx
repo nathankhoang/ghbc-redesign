@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { track } from "@vercel/analytics";
 import { register } from "@/app/actions/auth";
 import { checkPromoCode } from "@/app/actions/promo";
 import { PRICING } from "@/lib/site";
@@ -253,6 +254,7 @@ export function JoinCheckout({ initialPlan }: { initialPlan: Plan }) {
     if (!validateContactFields()) return;
     const form = formRef.current!;
     setSubmitting(true);
+    track("checkout_started", { plan });
     try {
       const fd = new FormData(form);
       fd.set("plan", plan);

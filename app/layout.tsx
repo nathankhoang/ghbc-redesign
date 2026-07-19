@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Anton, Oswald, Inter, DM_Serif_Display } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { SmoothScroll } from "@/components/smooth-scroll";
 import { LoadingOverlay } from "@/components/loading-overlay";
@@ -13,12 +14,32 @@ const dmSerif = DM_Serif_Display({
   variable: "--font-dm-serif",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ghbc-redesign.vercel.app";
+const TITLE = "Golden Hill Boxing Club — We Are Your Corner";
+const DESCRIPTION =
+  "Boxing, Muay Thai & Yoga in Golden Hill, San Diego. Beginners welcome. $99 first month, then $125/mo — no contract.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   // Short-form of the hero headline ("We're not just in your corner. We ARE your corner.")
-  title: "Golden Hill Boxing Club — We Are Your Corner",
-  description:
-    "Boxing, Muay Thai & Yoga in Golden Hill, San Diego. Beginners welcome. $99 first month, then $125/mo — no contract.",
+  title: TITLE,
+  description: DESCRIPTION,
   icons: { icon: "/favicon.ico" },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: SITE_URL,
+    siteName: "Golden Hill Boxing Club",
+    type: "website",
+    locale: "en_US",
+    images: [{ url: "/gym-exterior.jpg", width: 1260, height: 806, alt: "Golden Hill Boxing Club, 2302 Broadway Ave, San Diego" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: ["/gym-exterior.jpg"],
+  },
 };
 
 export default function RootLayout({
@@ -33,6 +54,7 @@ export default function RootLayout({
       <body suppressHydrationWarning className="grain antialiased">
         <SmoothScroll>{children}</SmoothScroll>
         <LoadingOverlay />
+        <Analytics />
       </body>
     </html>
   );

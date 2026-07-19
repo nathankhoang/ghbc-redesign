@@ -386,6 +386,38 @@ export async function inviteCoach(
   return { ok: true, info: `Invite sent to ${email}.` };
 }
 
+// ---------------------------------------------------------------------------
+// Class-level booking control (owner) — manual waitlist promote / remove
+// ---------------------------------------------------------------------------
+
+export async function ownerPromoteWaitlist(sessionId: string): Promise<AdminResult> {
+  if (!(await requireOwner())) return { ok: false, error: "Not authorized." };
+  const { promoteFromWaitlist } = await import("@/app/actions/booking");
+  await promoteFromWaitlist(sessionId);
+  revalidatePath("/admin/schedule");
+  revalidatePath("/schedule");
+  return { ok: true };
+}
+
+/** Owner removes a booking or waitlist entry from a class (no cutoff applies). */
+export async function ownerRemoveBooking(bookingId: string): Promise<AdminResult> {
+  if (!(await requireOwner())) return { ok: false, error: "Not authorized." };
+  const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
+  if (!booking) return { ok: false, error: "Booking not found." };
+  const wasBooked = booking.status === "BOOKED";
+  await prisma.booking.update({
+    where: { id: bookingId },
+    data: { status: "CANCELLED" },
+  });
+  if (wasBooked) {
+    const { promoteFromWaitlist } = await import("@/app/actions/booking");
+    await promoteFromWaitlist(booking.sessionId);
+  }
+  revalidatePath("/admin/schedule");
+  revalidatePath("/schedule");
+  return { ok: true };
+}
+
 export async function setCoachActive(coachId: string, active: boolean): Promise<AdminResult> {
   if (!(await requireOwner())) return { ok: false, error: "Not authorized." };
   await prisma.coach.update({ where: { id: coachId }, data: { active } });

@@ -4,6 +4,8 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { AppHeader } from "@/components/app-header";
 import { AvatarForm, EmailForm, PhoneForm, PasswordForm } from "@/components/account-forms";
+import { UpdateCardForm } from "@/components/update-card-form";
+import { MEMBERSHIP } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +18,7 @@ export default async function AccountPage() {
   return (
     <>
       <AppHeader />
-      <main className="mx-auto max-w-3xl px-5 py-12 sm:px-8">
+      <main className="selectable mx-auto max-w-3xl px-5 py-12 sm:px-8">
         <header className="mb-8">
           <p className="font-condensed text-sm tracking-[0.3em] text-gold uppercase">
             Account
@@ -35,6 +37,8 @@ export default async function AccountPage() {
           <EmailForm email={user.email} />
           <PhoneForm phone={user.phone} />
           <PasswordForm />
+          {/* Members with a recurring membership can swap the card on file. */}
+          {user.membershipType !== MEMBERSHIP.NONE && <UpdateCardForm />}
         </div>
       </main>
     </>

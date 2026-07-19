@@ -6,11 +6,42 @@ import { Hero } from "@/components/hero";
 import { ReviewsCarousel } from "@/components/reviews-carousel";
 import { StickyCta } from "@/components/sticky-cta";
 import { Reveal, SplitWords, Marquee } from "@/components/motion";
+import { TrackLink } from "@/components/track-link";
 import { STATS, CLASSES, TESTIMONIALS, VALUE_PROPS, GYM, PRICING } from "@/lib/site";
+
+// LocalBusiness structured data — leads with the $99 offer per the funnel rules.
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "ExerciseGym",
+  name: GYM.name,
+  description:
+    "Boxing, Muay Thai & Yoga gym in Golden Hill, San Diego. Beginners welcome. $99 first month, then $125/mo — no contract.",
+  telephone: "+1-619-316-6881",
+  email: GYM.email,
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "2302 Broadway Ave",
+    addressLocality: "San Diego",
+    addressRegion: "CA",
+    addressCountry: "US",
+  },
+  sameAs: ["https://www.instagram.com/goldenhillboxingclub/"],
+  priceRange: "$$",
+  offers: {
+    "@type": "Offer",
+    name: "Intro offer — first month",
+    price: (PRICING.FULL.introCents / 100).toFixed(2),
+    priceCurrency: "USD",
+  },
+};
 
 export default function Home() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+      />
       <SiteHeader />
       <main className="overflow-hidden">
         <Hero />
@@ -129,12 +160,14 @@ export default function Home() {
             <span className="font-condensed tracking-wide text-cream/70">
               Every class included — ${PRICING.FULL.introCents / 100} your first month.
             </span>
-            <Link
+            <TrackLink
+              event="cta_join_99"
+              data={{ location: "classes" }}
               href="/join"
               className="font-condensed rounded-full border border-gold px-6 py-2.5 text-sm font-semibold tracking-widest text-gold uppercase transition-colors hover:bg-gold hover:text-ink"
             >
               Join the club →
-            </Link>
+            </TrackLink>
           </Reveal>
         </section>
 
@@ -198,12 +231,14 @@ export default function Home() {
               No pressure, no contract. Come throw hands, see how it feels.
             </Reveal>
             <Reveal delay={0.5} className="mt-9">
-              <Link
+              <TrackLink
+                event="cta_trial"
+                data={{ location: "landing" }}
                 href="/join?type=trial"
                 className="font-condensed inline-block rounded-full bg-gold px-10 py-4 text-base font-semibold tracking-widest text-ink uppercase transition-transform transition-colors hover:scale-[1.03] hover:bg-bone"
               >
                 Book Your ${PRICING.TRIAL.introCents / 100} Trial
-              </Link>
+              </TrackLink>
               <p className="font-condensed mt-4 text-xs tracking-widest text-cream/45 uppercase">
                 One class · no contract
               </p>
@@ -255,12 +290,14 @@ export default function Home() {
                 >
                   Get Directions
                 </a>
-                <Link
+                <TrackLink
+                  event="cta_join_99"
+                  data={{ location: "come-say-hi" }}
                   href="/join"
                   className="font-condensed inline-block rounded-full bg-gold px-8 py-3.5 text-base font-semibold tracking-widest text-ink uppercase transition-transform transition-colors hover:scale-[1.03] hover:bg-bone"
                 >
                   Join the club
-                </Link>
+                </TrackLink>
               </Reveal>
             </div>
           </div>

@@ -15,8 +15,8 @@ export type Item = {
 
 function when(startISO: string, endISO: string) {
   const s = new Date(startISO);
-  const day = s.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-  const t = (d: Date) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  const day = s.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "America/Los_Angeles" });
+  const t = (d: Date) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" });
   return `${day} · ${t(s)} – ${t(new Date(endISO))}`;
 }
 

@@ -26,12 +26,13 @@ function whenLabel(startISO: string, endISO: string) {
   const start = new Date(startISO);
   const end = new Date(endISO);
   const day = start.toLocaleDateString("en-US", {
+    timeZone: "America/Los_Angeles",
     weekday: "short",
     month: "short",
     day: "numeric",
   });
   const time = (d: Date) =>
-    d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" });
   return `${day} · ${time(start)} – ${time(end)}`;
 }
 

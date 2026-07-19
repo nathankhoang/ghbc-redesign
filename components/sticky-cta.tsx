@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { TrackLink } from "@/components/track-link";
 
 export function StickyCta() {
   const [show, setShow] = useState(false);
@@ -33,12 +33,14 @@ export function StickyCta() {
               <span className="text-gold">$99</span> first month
             </p>
             <div className="flex items-center gap-2">
-              <Link
+              <TrackLink
+                event="cta_join_99"
+                data={{ location: "sticky" }}
                 href="/join"
                 className="font-condensed rounded-full bg-gold px-5 py-2 text-xs font-semibold tracking-widest text-ink uppercase transition-colors hover:bg-bone sm:px-6 sm:text-sm"
               >
                 Join
-              </Link>
+              </TrackLink>
               <button
                 type="button"
                 onClick={() => setDismissed(true)}

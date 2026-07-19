@@ -40,6 +40,7 @@ function Msg({ state }: { state: ScheduleState }) {
 
 function formatClosureDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
+    timeZone: "America/Los_Angeles",
     weekday: "long",
     month: "short",
     day: "numeric",

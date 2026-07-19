@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useRef, useState } from "react";
 import { SplitWords, Reveal } from "@/components/motion";
+import { TrackLink } from "@/components/track-link";
 import { PRICING } from "@/lib/site";
 
 /*
@@ -115,12 +115,14 @@ export function Hero() {
               ))}
             </ul>
 
-            <Link
+            <TrackLink
+              event="cta_join_99"
+              data={{ location: "hero" }}
               href="/join"
               className="font-condensed mt-6 block rounded-full bg-gold py-4 text-center text-base font-semibold tracking-widest text-ink uppercase transition-transform transition-colors hover:scale-[1.02] hover:bg-bone"
             >
               Join — ${PRICING.FULL.introCents / 100} first month
-            </Link>
+            </TrackLink>
           </div>
         </Reveal>
       </div>

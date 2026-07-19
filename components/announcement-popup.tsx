@@ -14,6 +14,7 @@ function formatWhen(value: string | Date): string {
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleDateString("en-US", {
+    timeZone: "America/Los_Angeles",
     weekday: "long",
     month: "short",
     day: "numeric",

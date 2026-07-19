@@ -20,7 +20,7 @@ export type Cls = {
 export type Day = { label: string; full: string; isToday: boolean; classes: Cls[] };
 
 function time(iso: string) {
-  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" });
 }
 
 export function ScheduleBooking({

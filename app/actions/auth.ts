@@ -177,7 +177,8 @@ export async function register(
       email,
       password,
       // Trial buyers go straight to the schedule to book their one class.
-      redirectTo: plan === "TRIAL" ? "/schedule" : "/welcome",
+      // The `joined` param lets the landing page fire checkout_completed.
+      redirectTo: plan === "TRIAL" ? "/schedule?joined=TRIAL" : `/welcome?joined=${plan}`,
     });
   } catch (error) {
     if (error instanceof AuthError) {

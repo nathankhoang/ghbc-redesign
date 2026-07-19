@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { BOOKING_STATUS, MEMBERSHIP } from "@/lib/constants";
+import { BOOKING_STATUS, MEMBERSHIP, PRICING } from "@/lib/constants";
 import { getWeekStart } from "@/lib/schedule";
 import { getClassCount, syncMilestones } from "@/lib/rewards";
 import { getUnreadAnnouncements } from "@/app/actions/announcements";
@@ -38,10 +38,21 @@ export default async function ProfilePage() {
     orderBy: { session: { startAt: "asc" } },
   });
 
-  const [classCount, announcements] = await Promise.all([
+  const [classCount, announcements, notifications] = await Promise.all([
     getClassCount(user.id),
     getUnreadAnnouncements(user.id),
+    prisma.notification.findMany({
+      where: { userId: user.id, readAt: null },
+      orderBy: { createdAt: "desc" },
+    }),
   ]);
+  // "Marked read on view" — the banner shows once, then clears.
+  if (notifications.length > 0) {
+    await prisma.notification.updateMany({
+      where: { id: { in: notifications.map((n) => n.id) } },
+      data: { readAt: new Date() },
+    });
+  }
   const milestoneRows = await syncMilestones(user.id, classCount);
   const milestones = milestoneRows.map((m) => ({
     milestone: m.milestone,
@@ -92,9 +103,28 @@ export default async function ProfilePage() {
           day: "numeric",
           hour: "numeric",
           minute: "2-digit",
+          timeZone: "America/Los_Angeles",
         }),
       }
     : null;
+
+  // Post-trial conversion: trial pass, credit spent, and their class has
+  // passed → the dashboard's one job is the $99 first-month offer.
+  const trialComplete =
+    user.membershipType === MEMBERSHIP.TRIAL &&
+    user.trialClassCredits < 1 &&
+    upcoming.length === 0 &&
+    attended.length > 0;
+
+  const status = user.subscriptionStatus;
+  const statusLabel =
+    status === "past_due"
+      ? "Payment issue"
+      : status === "paused"
+        ? "Paused"
+        : status === "cancelled"
+          ? "Inactive"
+          : "Active";
 
   return (
     <>
@@ -102,6 +132,68 @@ export default async function ProfilePage() {
       <AnnouncementPopup announcements={announcements} />
       <AppHeader />
       <main className="selectable mx-auto max-w-5xl px-5 py-12 sm:px-8">
+        {/* Status banners — persistent while the condition holds. */}
+        {status === "past_due" && (
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-blood/50 bg-blood/15 px-5 py-4">
+            <p className="text-cream/90">
+              There&apos;s a problem with your payment — update your card to keep booking.
+            </p>
+            <Link
+              href="/account#payment"
+              className="font-condensed shrink-0 rounded-full bg-gold px-5 py-2 text-xs font-semibold tracking-widest text-ink uppercase hover:bg-bone"
+            >
+              Update card
+            </Link>
+          </div>
+        )}
+        {status === "paused" && (
+          <div className="mb-6 rounded-2xl border border-bronze/50 bg-bronze/10 px-5 py-4 text-cream/85">
+            Your membership is paused — booking is on hold. Contact the gym to start
+            training again.
+          </div>
+        )}
+
+        {/* In-dashboard notifications (waitlist promotions etc.) — shown once. */}
+        {notifications.length > 0 && (
+          <div className="mb-6 grid gap-2">
+            {notifications.map((n) => (
+              <div
+                key={n.id}
+                className="rounded-2xl border border-gold/40 bg-gold/10 px-5 py-4"
+              >
+                <p className="font-condensed text-sm tracking-wide text-gold uppercase">
+                  {n.title}
+                </p>
+                <p className="mt-1 text-sm text-cream/85">{n.body}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Post-trial: the conversion pitch replaces the usual dashboard. */}
+        {trialComplete && (
+          <div className="mb-8 rounded-3xl border border-gold/40 bg-gradient-to-br from-oxblood/70 to-ink p-8 text-center sm:p-10">
+            <p className="font-condensed mb-3 text-sm tracking-[0.35em] text-bronze uppercase">
+              How was your first class?
+            </p>
+            <h2 className="font-poster fluid-h3 text-bone">
+              Ready to make it official, {user.firstName}?
+            </h2>
+            <div className="font-poster poster-shadow mt-4 text-7xl text-bone">
+              ${PRICING.FULL.introCents / 100}
+            </div>
+            <p className="font-condensed mt-1 tracking-wide text-cream/70">
+              first month · then ${PRICING.FULL.recurringCents / 100}/mo · no contract
+            </p>
+            <Link
+              href="/join"
+              className="font-condensed mt-6 inline-block rounded-full bg-gold px-10 py-4 text-base font-semibold tracking-widest text-ink uppercase transition-transform transition-colors hover:scale-[1.03] hover:bg-bone"
+            >
+              Join the club
+            </Link>
+          </div>
+        )}
+
         {/* Welcome */}
         <div className="mb-8 flex flex-wrap items-center justify-between gap-6 rounded-3xl border border-oxblood-600/50 bg-gradient-to-r from-oxblood/60 to-ink p-7 sm:p-9">
           <div className="flex items-center gap-5">
@@ -121,7 +213,7 @@ export default async function ProfilePage() {
             <div>
               <h1 className="font-poster text-4xl text-bone">Welcome back, {user.firstName}</h1>
               <p className="font-condensed tracking-widest text-gold uppercase">
-                {MEMBERSHIP_LABEL[user.membershipType] ?? "Member"} · Active
+                {MEMBERSHIP_LABEL[user.membershipType] ?? "Member"} · {statusLabel}
               </p>
             </div>
           </div>

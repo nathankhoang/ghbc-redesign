@@ -85,9 +85,10 @@ export default async function CoachPage() {
 
   const weekEnd = addDays(thisWeek, 6);
   const weekLabel = `This week · ${thisWeek.toLocaleDateString("en-US", {
+    timeZone: "America/Los_Angeles",
     month: "short",
     day: "numeric",
-  })} – ${weekEnd.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+  })} – ${weekEnd.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/Los_Angeles" })}`;
 
   return (
     <div className="grid gap-8">

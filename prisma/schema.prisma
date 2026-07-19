@@ -32,6 +32,8 @@ model User {
   classCountAdjust   Int       @default(0)
   // Trial buyers get exactly ONE class credit; consumed on booking.
   trialClassCredits  Int       @default(0)
+  // When the post-trial "$99 first month" follow-up email went out (cron).
+  trialFollowUpAt    DateTime?
   createdAt          DateTime  @default(now())
   bookings           Booking[]
   coach              Coach?    // set when this account is a coach's login
