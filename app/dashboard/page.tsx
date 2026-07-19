@@ -12,7 +12,7 @@ export default async function DashboardPage() {
 
   switch (session.user.role) {
     case ROLES.OWNER:
-      redirect("/admin/coaches");
+      redirect("/admin");
     case ROLES.COACH:
       redirect("/coach");
     default:
