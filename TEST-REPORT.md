@@ -43,7 +43,8 @@ subscribed. Safe to delete via the owner dashboard.
 
 ## What still needs real-world testing
 1. ~~Plans script + sandbox checkout~~ **DONE 2026-07-19** — $99 invoice PAID, subscription ACTIVE on the phased plan. Cycle-2 ($125) rollover is defined in the Catalog phases (Square-managed); literal cycle-2 billing can only be observed after a billing month or with a sandbox test-clock account.
-2. Square webhook events flipping membership status — subscribe `https://<deployed-site>/api/webhooks/square` in the GHBC Website app after the Vercel deploy, set `SQUARE_WEBHOOK_SIGNATURE_KEY`.
-3. Declined-card path (`4000 0000 0000 0002` sandbox decline card), $600/$1,200/$25 one-time checkouts, sync-from-Square, claim links via Resend.
-4. Turnstile blocking with keys set.
-5. Production: re-run `SQUARE_ENVIRONMENT=production npx tsx scripts/setup-square-plans.ts` with production credentials before launch.
+2. ~~Square webhooks~~ **DONE 2026-07-19** — "GHBC Website (sandbox)" subscription live on production `/api/webhooks/square` (4 events); Square's signed test event → 200 OK, unsigned/bad-signature → 401. (Gotcha fixed: piping the signature key through PowerShell added a CRLF that broke verification — use bash `printf '%s'` for Vercel secrets.)
+3. ~~Turnstile~~ **DONE 2026-07-19** — existing "Golden Hill Boxing Club Signup" widget reused; `ghbc-redesign.vercel.app` added to its hostnames; both keys in Vercel; enforcement active (the widget correctly refused to issue a token to an automated browser during verification — do one human login on the live site to see it pass silently).
+4. ~~Class schedule~~ **DONE 2026-07-19** — copied exactly from goldenhillboxingclub.classy.sh/public-schedule (2:30–5pm Open Gym blocks, Thursday 12–2:30 Open Gym added, Monday evenings now Coach Derek) and reseeded. Owner manages future weeks from the dashboard.
+5. Declined-card path (`4000 0000 0000 0002` sandbox decline card), $600/$1,200/$25 one-time checkouts, sync-from-Square, claim links via Resend.
+6. Production launch: Square **production** keys + re-run plans script with `SQUARE_ENVIRONMENT=production`, a production webhook subscription, swap Vercel env, change the seeded owner password.

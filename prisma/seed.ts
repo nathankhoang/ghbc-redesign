@@ -21,9 +21,10 @@ type Slot = {
   cap: number;
 };
 
-// Weekly schedule transcribed from goldenhillboxingclub.classy.sh. Kept as the
-// seed baseline; the owner can tweak times, coaches, and capacities in-app.
-// TODO: confirm times with owner — this transcription may be out of date.
+// Weekly schedule copied EXACTLY from the live site
+// (goldenhillboxingclub.classy.sh/public-schedule, verified 2026-07-19).
+// This is the launch baseline only — the owner manages all future weeks from
+// the owner dashboard's Schedule manager.
 const SLOTS: Slot[] = [
   // Sunday
   { day: 0, type: BOXING, coach: "Coach Ali", start: t(9), end: t(10), cap: 10 },
@@ -31,13 +32,13 @@ const SLOTS: Slot[] = [
   // Monday
   { day: 1, type: BOXING, coach: "Coach Ali", start: t(7, 30), end: t(8, 30), cap: 10 },
   { day: 1, type: OPEN_GYM, coach: null, start: t(12), end: t(14, 30), cap: 12 },
-  { day: 1, type: OPEN_GYM, coach: null, start: t(15), end: t(17), cap: 12 },
-  { day: 1, type: BOXING, coach: "Coach Colton", start: t(17), end: t(18), cap: 10 },
-  { day: 1, type: MUAY_THAI, coach: "Coach Colton", start: t(18, 15), end: t(19, 15), cap: 10 },
+  { day: 1, type: OPEN_GYM, coach: null, start: t(14, 30), end: t(17), cap: 12 },
+  { day: 1, type: BOXING, coach: "Coach Derek", start: t(17), end: t(18), cap: 10 },
+  { day: 1, type: MUAY_THAI, coach: "Coach Derek", start: t(18, 15), end: t(19, 15), cap: 10 },
   // Tuesday
   { day: 2, type: YOGA, coach: "Emily", start: t(7, 15), end: t(8), cap: 8 },
   { day: 2, type: OPEN_GYM, coach: null, start: t(12), end: t(14, 30), cap: 12 },
-  { day: 2, type: OPEN_GYM, coach: null, start: t(15), end: t(17), cap: 12 },
+  { day: 2, type: OPEN_GYM, coach: null, start: t(14, 30), end: t(17), cap: 12 },
   { day: 2, type: MUAY_THAI, coach: "Coach Colton", start: t(17), end: t(18), cap: 10 },
   { day: 2, type: BOXING, coach: "Coach Ali", start: t(18, 15), end: t(19, 15), cap: 10 },
   // Wednesday
@@ -49,14 +50,15 @@ const SLOTS: Slot[] = [
   { day: 3, type: MUAY_THAI_SPARRING, coach: "Coach Colton", start: t(19, 30), end: t(20, 30), cap: 8 },
   // Thursday
   { day: 4, type: YOGA, coach: "Emily", start: t(7, 15), end: t(8), cap: 8 },
-  { day: 4, type: OPEN_GYM, coach: null, start: t(15), end: t(17), cap: 12 },
+  { day: 4, type: OPEN_GYM, coach: null, start: t(12), end: t(14, 30), cap: 12 },
+  { day: 4, type: OPEN_GYM, coach: null, start: t(14, 30), end: t(17), cap: 12 },
   { day: 4, type: MUAY_THAI, coach: "Coach Jack", start: t(17), end: t(18), cap: 10 },
   { day: 4, type: BOXING, coach: "Coach Ali", start: t(18, 15), end: t(19, 15), cap: 10 },
   { day: 4, type: BOXING_SPARRING, coach: "Coach Kyle", start: t(19, 15), end: t(20, 15), cap: 8 },
   // Friday
   { day: 5, type: BOXING, coach: "Coach Colton", start: t(7, 30), end: t(8, 30), cap: 10 },
   { day: 5, type: OPEN_GYM, coach: null, start: t(12), end: t(14, 30), cap: 12 },
-  { day: 5, type: OPEN_GYM, coach: null, start: t(15), end: t(17), cap: 12 },
+  { day: 5, type: OPEN_GYM, coach: null, start: t(14, 30), end: t(17), cap: 12 },
   { day: 5, type: BOXING, coach: "Coach Derek", start: t(17), end: t(18), cap: 10 },
   { day: 5, type: MUAY_THAI, coach: "Coach Derek", start: t(18, 15), end: t(19, 15), cap: 10 },
   // Saturday
