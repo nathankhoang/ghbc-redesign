@@ -178,7 +178,7 @@ export function LoadingOverlay() {
         <div ref={kickerRef} className={styles.kicker}>
           <div className={styles.kickerLine}>Golden Hill Athletic Club · San Diego</div>
           <div className={styles.kickerRule} />
-          <div className={styles.kickerSub}>The sweet science — Est. MMXXV</div>
+          <div className={styles.kickerSub}>The sweet science · Est. MMXXV</div>
         </div>
 
         {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -22,7 +22,7 @@ export default function LoginPage() {
           <p className="mt-6 text-center text-sm text-cream/50">
             New here?{" "}
             <Link href="/join" className="text-gold underline underline-offset-4">
-              Join — $99 first month
+              Join for $99 first month
             </Link>
           </p>
           {/* Subtle path to the coach/owner login — deliberately low-key. */}

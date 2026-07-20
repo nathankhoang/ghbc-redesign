@@ -64,7 +64,7 @@ function CoverRow({
         <p className="font-condensed text-sm tracking-wide text-cream/55">
           {session.whenLabel} · {session.coachName ?? "Unstaffed"}
           {session.subCoachName && (
-            <span className="text-gold"> — covered by {session.subCoachName}</span>
+            <span className="text-gold">, covered by {session.subCoachName}</span>
           )}
         </p>
       </div>

@@ -61,7 +61,7 @@ export function Leaderboard({ top, me }: { top: LeaderRow[]; me: LeaderRow | nul
         <h2 className="font-poster text-3xl text-bone">🥊 Top of the Class</h2>
       </div>
       <p className="font-condensed mb-6 text-xs tracking-widest text-cream/50 uppercase">
-        Our most-committed members — no pressure, just good company
+        Our most-committed members, no pressure, just good company
       </p>
 
       {top.length === 0 ? (
@@ -83,7 +83,7 @@ export function Leaderboard({ top, me }: { top: LeaderRow[]; me: LeaderRow | nul
             <div className="mt-5 rounded-2xl border border-gold/40 bg-gold/10 px-5 py-4 text-center">
               <p className="font-condensed text-sm tracking-wide text-bone">
                 You&apos;ve logged{" "}
-                <span className="text-gold">{classesLabel(me.count)}</span> — keep stacking
+                <span className="text-gold">{classesLabel(me.count)}</span>. Keep stacking
                 them up 💪
               </p>
             </div>

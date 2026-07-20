@@ -15,7 +15,7 @@ const JSON_LD = {
   "@type": "ExerciseGym",
   name: GYM.name,
   description:
-    "Boxing, Muay Thai & Yoga gym in Golden Hill, San Diego. Beginners welcome. $99 first month, then $125/mo — no contract.",
+    "Boxing, Muay Thai & Yoga gym in Golden Hill, San Diego. Beginners welcome. $99 first month, then $125/mo. No contract.",
   telephone: "+1-619-316-6881",
   email: GYM.email,
   address: {
@@ -29,7 +29,7 @@ const JSON_LD = {
   priceRange: "$$",
   offers: {
     "@type": "Offer",
-    name: "Intro offer — first month",
+    name: "Intro offer for the first month",
     price: (PRICING.FULL.introCents / 100).toFixed(2),
     priceCurrency: "USD",
   },
@@ -82,7 +82,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col justify-end">
               <Reveal className="text-xl leading-relaxed text-cream/80">
-                Tucked into Golden Hill, we&apos;re a real boxing gym — sweat, heavy bags, and
+                Tucked into Golden Hill, we&apos;re a real boxing gym. Sweat, heavy bags, and
                 coaches who actually know your name. Whether you&apos;re throwing your first jab
                 or sharpening for your next fight, this is your corner.
               </Reveal>
@@ -158,7 +158,7 @@ export default function Home() {
 
           <Reveal className="mt-10 flex flex-wrap items-center justify-center gap-4 text-center">
             <span className="font-condensed tracking-wide text-cream/70">
-              Every class included — ${PRICING.FULL.introCents / 100} your first month.
+              Every class included for ${PRICING.FULL.introCents / 100} your first month.
             </span>
             <TrackLink
               event="cta_join_99"
@@ -184,7 +184,7 @@ export default function Home() {
               <SplitWords text="The Coaches" />
             </h2>
             <Reveal delay={0.2} className="mx-auto mt-6 max-w-xl text-xl text-cream/80">
-              Six coaches who&apos;ve done it for real — boxing, Muay Thai and yoga — and meet
+              Six coaches who&apos;ve done it for real in boxing, Muay Thai and yoga, and meet
               you exactly where you&apos;re at.
             </Reveal>
             <Reveal delay={0.35} className="mt-9">
@@ -228,7 +228,7 @@ export default function Home() {
               <SplitWords text={`Try a class for $${PRICING.TRIAL.introCents / 100}.`} delay={0.1} />
             </h2>
             <Reveal delay={0.3} className="mt-6 text-xl text-cream/80">
-              No pressure, no contract. Come throw hands, see how it feels.
+              No pressure, no contract. Come see what it feels like to have a corner.
             </Reveal>
             <Reveal delay={0.5} className="mt-9">
               <TrackLink

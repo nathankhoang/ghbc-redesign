@@ -77,7 +77,7 @@ export async function register(
     return { error: "Please enter a valid email address." };
   }
   if (!isValidUSPhone(phone)) {
-    return { error: "Please enter a valid US phone number — (XXX) XXX-XXXX." };
+    return { error: "Please enter a valid US phone number, like (XXX) XXX-XXXX." };
   }
   if (password.length < 8) {
     return { error: "Password must be at least 8 characters." };

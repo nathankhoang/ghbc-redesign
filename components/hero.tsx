@@ -22,10 +22,10 @@ import { PRICING } from "@/lib/site";
 const OFFER_BENEFITS = [
   "Unlimited group classes",
   "Professional coaching",
-  "Open gym — bags, ropes & the ring",
+  "Open gym, train on your time",
   "Boxing · Muay Thai · Yoga",
   "Beginners always welcome",
-  "No contract — cancel anytime",
+  "No contract, cancel anytime",
 ];
 
 export function Hero() {
@@ -121,7 +121,7 @@ export function Hero() {
               href="/join"
               className="font-condensed mt-6 block rounded-full bg-gold py-4 text-center text-base font-semibold tracking-widest text-ink uppercase transition-transform transition-colors hover:scale-[1.02] hover:bg-bone"
             >
-              Join — ${PRICING.FULL.introCents / 100} first month
+              Join for ${PRICING.FULL.introCents / 100} first month
             </TrackLink>
           </div>
         </Reveal>

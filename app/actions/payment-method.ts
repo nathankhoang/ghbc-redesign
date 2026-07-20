@@ -27,14 +27,14 @@ export async function updateCardOnFile(paymentToken: string): Promise<CardUpdate
   if (!user) return { ok: false, error: "Account not found." };
 
   if (!paymentsEnabled) {
-    return { ok: true, info: "Payments are in demo mode — no card was stored." };
+    return { ok: true, info: "Payments are in demo mode. No card was stored." };
   }
 
   const customerId = user.membership?.squareCustomerId ?? user.squareCustomerId;
   if (!customerId) {
     return {
       ok: false,
-      error: "No billing profile found — contact the gym and we'll sort it out.",
+      error: "No billing profile found. Contact the gym and we'll sort it out.",
     };
   }
 

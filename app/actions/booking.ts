@@ -11,11 +11,11 @@ export type BookingResult = { ok: boolean; error?: string };
 // A trial covers exactly ONE class, tracked as a class credit that's consumed
 // on booking (and refunded if the booking is cancelled before class).
 const TRIAL_UPGRADE_MSG =
-  "Your trial covers one class. Become a member to book more — we'd love to have you!";
+  "Your trial covers one class. Become a member to book more. We'd love to have you!";
 
 const PAST_DUE_MSG =
-  "There's a problem with your payment — update your card in Settings to keep booking.";
-const PAUSED_MSG = "Your membership is paused — contact the gym to start booking again.";
+  "There's a problem with your payment. Update your card in Settings to keep booking.";
+const PAUSED_MSG = "Your membership is paused. Contact the gym to start booking again.";
 const CANCELLED_MSG = "Your membership isn't active. Rejoin to book classes.";
 
 function revalidate() {
@@ -43,7 +43,7 @@ function bookingGateError(user: GateUser): string | null {
     case "cancelled":
       return CANCELLED_MSG;
     case "pending_claim":
-      return "Claim your account first — check your email for the claim link.";
+      return "Claim your account first. Check your email for the claim link.";
     default:
       return null;
   }
@@ -83,7 +83,7 @@ export async function bookClass(sessionId: string): Promise<BookingResult> {
   if (cls.startAt < new Date())
     return { ok: false, error: "That class has already started." };
   if (cls._count.bookings >= cls.capacity)
-    return { ok: false, error: "This class is full — you can join the waitlist." };
+    return { ok: false, error: "This class is full. You can join the waitlist." };
 
   // No double-booking (also enforced by the DB's unique constraint).
   const existing = await prisma.booking.findUnique({
@@ -195,7 +195,7 @@ export async function promoteFromWaitlist(sessionId: string): Promise<void> {
   await prisma.notification.create({
     data: {
       userId: next.user.id,
-      title: "A spot opened up — you're in!",
+      title: "A spot opened up. You're in!",
       body: `You've been moved off the waitlist and confirmed for ${next.session.classType} on ${when}.`,
     },
   });
@@ -225,7 +225,7 @@ export async function cancelBooking(bookingId: string): Promise<BookingResult> {
     if (new Date() > cutoff) {
       return {
         ok: false,
-        error: `Bookings can be cancelled up to ${CANCEL_CUTOFF_MINUTES} minutes before class. This one is inside the window — call the gym if something came up.`,
+        error: `Bookings can be cancelled up to ${CANCEL_CUTOFF_MINUTES} minutes before class. This one is inside the window. Call the gym if something came up.`,
       };
     }
   }

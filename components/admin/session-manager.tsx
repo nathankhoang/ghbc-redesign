@@ -75,7 +75,7 @@ function EditSessionForm({
     >
       <input type="hidden" name="id" value={session.id} />
       <p className="font-condensed text-xs tracking-widest text-gold uppercase">
-        This class only — the recurring series is untouched
+        This class only, the recurring series is untouched
       </p>
       <div className="grid gap-3 sm:grid-cols-4">
         <label className="grid gap-1.5">

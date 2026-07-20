@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { GYM } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "Liability Waiver & Terms — Golden Hill Boxing Club",
+  title: "Liability Waiver & Terms · Golden Hill Boxing Club",
   description: "Liability waiver and terms of participation for Golden Hill Boxing Club.",
 };
 
@@ -26,7 +26,7 @@ export default function WaiverPage() {
           Liability Waiver &amp; Terms
         </h1>
         <p className="font-condensed mt-3 text-xs tracking-widest text-cream/40 uppercase">
-          Placeholder — official language pending
+          Placeholder: official language pending
         </p>
 
         <div className="selectable mt-10 space-y-8 leading-relaxed text-cream/80">

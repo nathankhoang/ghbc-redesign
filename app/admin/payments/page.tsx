@@ -107,7 +107,7 @@ export default async function AdminPaymentsPage() {
                 <div className="min-w-0">
                   <p className="font-semibold text-bone">{formatCents(p.amountCents)}</p>
                   <p className="font-condensed truncate text-sm tracking-wide text-cream/55">
-                    {p.note ?? "—"}
+                    {p.note ?? "No note"}
                     {p.createdAt &&
                       ` · ${new Date(p.createdAt).toLocaleDateString("en-US", {
                         month: "short",

@@ -102,7 +102,7 @@ export function RewardsBar({
       </div>
       <p className="font-condensed mb-8 text-xs tracking-widest text-cream/50 uppercase">
         {maxedOut
-          ? "All milestones unlocked — legend status 👑"
+          ? "All milestones unlocked, legend status 👑"
           : `${Math.max(0, barTarget - classCount)} more to unlock ${barTarget} classes`}
       </p>
 

@@ -64,8 +64,8 @@ export default async function JoinPage({
           </div>
           <ul className="mt-8 grid gap-3">
             {(initialPlan === "TRIAL"
-              ? ["One full class — boxing, Muay Thai or yoga", "All gear provided, just show up", "Coached from your very first round", "No membership, no commitment"]
-              : ["Unlimited access to every class", "Open gym — bags, ropes, the ring", "Beginners always welcome", "Cancel anytime, no contract"]
+              ? ["One full class of boxing, Muay Thai or yoga", "All gear provided, just show up", "Coached from your very first round", "No membership, no commitment"]
+              : ["Unlimited access to every class", "Open gym, your corner any time you need it", "Beginners always welcome", "Cancel anytime, no contract"]
             ).map((b) => (
               <li key={b} className="flex items-center gap-3 text-cream/85">
                 <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-gold/20 text-gold">✓</span>
@@ -86,7 +86,7 @@ export default async function JoinPage({
               <>
                 Just testing the waters?{" "}
                 <Link href="/join?type=trial" className="text-gold underline underline-offset-4">
-                  Try one class — ${PRICING.TRIAL.introCents / 100}
+                  Try one class for ${PRICING.TRIAL.introCents / 100}
                 </Link>
                 .
               </>

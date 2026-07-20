@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { ClaimForm } from "@/components/claim-form";
 
 export const metadata: Metadata = {
-  title: "Claim your account — Golden Hill Boxing Club",
+  title: "Claim your account · Golden Hill Boxing Club",
   robots: { index: false },
 };
 
@@ -31,7 +31,7 @@ export default async function ClaimPage({
           <h1 className="font-poster mb-1 text-4xl text-bone">Claim your account</h1>
           <p className="mb-7 text-cream/60">
             Set a password and you&apos;re in. Your membership and billing carry over
-            exactly as they are — no card needed.
+            exactly as they are, no card needed.
           </p>
           {token ? (
             <ClaimForm token={token} />

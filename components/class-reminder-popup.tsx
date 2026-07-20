@@ -60,13 +60,13 @@ export function ClassReminderPopup({
           <p className="mt-3 text-cream/75">
             You&apos;re all set for{" "}
             <span className="font-semibold text-gold">{nextClass!.classType}</span> on{" "}
-            {nextClass!.whenLabel}. We can&apos;t wait to see you there — keep up the
+            {nextClass!.whenLabel}. We can&apos;t wait to see you there. Keep up the
             great work. 💪
           </p>
         ) : (
           <p className="mt-3 text-cream/75">
             Your next class is waiting for you. Booking your spot takes just a few
-            seconds — pick a time that works and come train with us. 💪
+            seconds. Pick a time that works and come train with us. 💪
           </p>
         )}
 

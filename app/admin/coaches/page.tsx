@@ -108,9 +108,9 @@ export default async function AdminCoachesPage() {
                 </span>
                 <span className="font-medium text-bone">{s.classType}</span>
                 <span className="text-cream/60">
-                  {whenLabel(s.startAt, s.endAt)} —{" "}
+                  {whenLabel(s.startAt, s.endAt)},{" "}
                   <span className="text-gold">{s.subCoach?.name}</span> covering
-                  for {s.coach?.name ?? "—"}
+                  for {s.coach?.name ?? "an open slot"}
                 </span>
               </li>
             ))}
@@ -122,7 +122,7 @@ export default async function AdminCoachesPage() {
       <section className="rounded-3xl border border-oxblood-600/50 bg-oxblood/20 p-6 sm:p-8">
         <h2 className="font-poster mb-2 text-2xl text-bone">Assign cover</h2>
         <p className="mb-5 text-sm text-cream/60">
-          Next 14 days. Pick a coach to cover a class — members see the sub
+          Next 14 days. Pick a coach to cover a class. Members see the sub
           right away.
         </p>
         <AssignCoverManager sessions={coverSessions} coaches={coachOpts} />

@@ -15,9 +15,9 @@ const dmSerif = DM_Serif_Display({
 });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ghbc-redesign.vercel.app";
-const TITLE = "Golden Hill Boxing Club — We Are Your Corner";
+const TITLE = "Golden Hill Boxing Club · We Are Your Corner";
 const DESCRIPTION =
-  "Boxing, Muay Thai & Yoga in Golden Hill, San Diego. Beginners welcome. $99 first month, then $125/mo — no contract.";
+  "Boxing, Muay Thai & Yoga in Golden Hill, San Diego. Beginners welcome. $99 first month, then $125/mo. No contract.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

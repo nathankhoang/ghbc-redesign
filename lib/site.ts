@@ -4,8 +4,9 @@ import { GYM, PRICING } from "@/lib/constants";
 export { GYM, PRICING };
 
 // Per the 2026 feedback pass: no "Pricing" link — the $99 offer lives in the hero.
+// "/#classes" (not "#classes") so the link works from every page, not just home.
 export const NAV = [
-  { label: "Classes", href: "#classes" },
+  { label: "Classes", href: "/#classes" },
   { label: "Coaches", href: "/coaches" },
   { label: "Schedule", href: "/schedule" },
 ];
@@ -22,7 +23,7 @@ export const CLASSES = [
     name: "Boxing",
     tag: "All levels",
     blurb:
-      "Learn the sweet science — footwork, head movement, combinations and real conditioning. Wraps on, gloves up.",
+      "Learn the sweet science: footwork, head movement, combinations and real conditioning. Wraps on, gloves up.",
     expect: "Beginner-friendly. We'll teach you the basics your first day.",
   },
   {
@@ -30,7 +31,7 @@ export const CLASSES = [
     tag: "All levels",
     blurb:
       "The art of eight limbs. Elbows, knees, kicks and clinch work with coaches who've done it for real.",
-    expect: "No experience needed — start slow, build fast.",
+    expect: "No experience needed. Start slow, build fast.",
   },
   {
     name: "Yoga",
@@ -43,7 +44,7 @@ export const CLASSES = [
     name: "Open Gym",
     tag: "Members",
     blurb:
-      "Bags, ropes and the ring — yours to use. Train on your schedule, at your pace.",
+      "Your corner of the gym, yours to use. Train on your schedule, at your pace.",
     expect: "Unlimited access with any membership.",
   },
 ];
@@ -56,7 +57,7 @@ export const COACHES: { name: string; specialty: string; bio: string; image?: st
   {
     name: "Coach Ali",
     specialty: "Boxing",
-    bio: "Pure sweet science — footwork, defense and crisp combinations. Ali will sharpen your fundamentals from round one.",
+    bio: "Pure sweet science: footwork, defense and crisp combinations. Ali will sharpen your fundamentals from round one.",
   },
   {
     name: "Coach Colton",
@@ -71,7 +72,7 @@ export const COACHES: { name: string; specialty: string; bio: string; image?: st
   {
     name: "Coach Jack",
     specialty: "Boxing · Muay Thai",
-    bio: "High-energy pads and honest coaching. Train with Jack and you'll leave dripping — and smiling.",
+    bio: "High-energy pads and honest coaching. Train with Jack and you'll leave dripping, and smiling.",
   },
   {
     name: "Coach Kyle",
@@ -81,7 +82,7 @@ export const COACHES: { name: string; specialty: string; bio: string; image?: st
   {
     name: "Emily",
     specialty: "Yoga",
-    bio: "Mobility, breath and recovery — Emily keeps the fighters loose and the rest of us moving better than ever.",
+    bio: "Mobility, breath and recovery. Emily keeps the fighters loose and the rest of us moving better than ever.",
   },
 ];
 
@@ -127,7 +128,7 @@ export const TESTIMONIALS: { quote: string; name: string; tag: string; stars: nu
 export const VALUE_PROPS = [
   {
     title: "Beginners Welcome",
-    body: "Never trained a day in your life? Perfect. Every class starts with the fundamentals — no experience, no ego, no problem.",
+    body: "Never trained a day in your life? Perfect. Every class starts with the fundamentals: no experience, no ego, no problem.",
   },
   {
     title: "No Contracts",

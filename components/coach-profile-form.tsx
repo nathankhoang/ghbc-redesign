@@ -81,7 +81,7 @@ export function CoachProfileForm({ name, bio }: { name: string; bio: string }) {
             name="bio"
             defaultValue={bio}
             rows={3}
-            placeholder="A short intro — your background, style, what members can expect."
+            placeholder="A short intro: your background, style, what members can expect."
             className={field}
           />
         </label>

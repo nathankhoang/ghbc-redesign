@@ -53,7 +53,7 @@ export default async function AdminMembersPage() {
         </p>
         <h1 className="font-poster text-4xl text-bone sm:text-5xl">Members</h1>
         <p className="mt-2 text-cream/60">
-          {members.length} member{members.length === 1 ? "" : "s"} — search, manage
+          {members.length} member{members.length === 1 ? "" : "s"}. Search, manage
           billing, and track rewards.
         </p>
       </header>

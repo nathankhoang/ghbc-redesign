@@ -59,7 +59,7 @@ export function ScheduleBooking({
       {!authed && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gold/30 bg-gold/5 px-5 py-4">
           <p className="text-cream/80">
-            You&apos;re viewing the schedule as a guest — log in or join to book a class.
+            You&apos;re viewing the schedule as a guest. Log in or join to book a class.
           </p>
           <div className="flex shrink-0 gap-3">
             <Link href="/login" className="font-condensed rounded-full border border-cream/30 px-5 py-2 text-xs font-semibold tracking-widest text-cream uppercase transition-colors hover:border-gold hover:text-gold">
@@ -149,7 +149,7 @@ export function ScheduleBooking({
               {sel.coachName && ` with ${sel.coachName}`}
             </p>
             <p className="text-cream/55">{time(sel.startISO)} – {time(sel.endISO)}</p>
-            {isWait && <p className="mt-3 text-sm text-bronze">This class is full — we&apos;ll auto-book you if a spot opens.</p>}
+            {isWait && <p className="mt-3 text-sm text-bronze">This class is full. We&apos;ll auto-book you if a spot opens.</p>}
             {!authed && (
               <p className="mt-3 text-sm text-cream/60">
                 Sign in or join the club to book this class.

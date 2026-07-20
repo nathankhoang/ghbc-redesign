@@ -109,7 +109,7 @@ function TemplateFields({
             defaultValue={template?.coachId ?? ""}
             className={field}
           >
-            <option value="">No coach — Open Gym / unstaffed</option>
+            <option value="">No coach: Open Gym / unstaffed</option>
             {coaches.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}

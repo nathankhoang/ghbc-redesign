@@ -136,7 +136,7 @@ export default async function ProfilePage() {
         {status === "past_due" && (
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-blood/50 bg-blood/15 px-5 py-4">
             <p className="text-cream/90">
-              There&apos;s a problem with your payment — update your card to keep booking.
+              There&apos;s a problem with your payment. Update your card to keep booking.
             </p>
             <Link
               href="/account#payment"
@@ -148,7 +148,7 @@ export default async function ProfilePage() {
         )}
         {status === "paused" && (
           <div className="mb-6 rounded-2xl border border-bronze/50 bg-bronze/10 px-5 py-4 text-cream/85">
-            Your membership is paused — booking is on hold. Contact the gym to start
+            Your membership is paused. Booking is on hold. Contact the gym to start
             training again.
           </div>
         )}

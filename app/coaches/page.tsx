@@ -9,9 +9,9 @@ import { COACHES } from "@/lib/site";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Our Coaches — Golden Hill Boxing Club",
+  title: "Our Coaches · Golden Hill Boxing Club",
   description:
-    "Meet the coaching staff at Golden Hill Boxing Club — boxing, Muay Thai and yoga instructors in San Diego.",
+    "Meet the coaching staff at Golden Hill Boxing Club: boxing, Muay Thai and yoga instructors in San Diego.",
 };
 
 export default async function CoachesPage() {

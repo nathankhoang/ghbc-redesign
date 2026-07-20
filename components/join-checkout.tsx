@@ -240,7 +240,7 @@ export function JoinCheckout({ initialPlan }: { initialPlan: Plan }) {
       return false;
     }
     if (!isValidUSPhone(phone)) {
-      setPhoneErr("Enter a valid US phone number — (XXX) XXX-XXXX.");
+      setPhoneErr("Enter a valid US phone number, like (XXX) XXX-XXXX.");
       return false;
     }
     return true;
@@ -266,7 +266,7 @@ export function JoinCheckout({ initialPlan }: { initialPlan: Plan }) {
         const result = await method.tokenize();
         if (result.status !== "OK" || !result.token) {
           throw new Error(
-            result.errors?.[0]?.message ?? "Card details look incomplete — double-check them.",
+            result.errors?.[0]?.message ?? "Card details look incomplete. Double-check them.",
           );
         }
         fd.set("paymentToken", result.token);
@@ -355,7 +355,7 @@ export function JoinCheckout({ initialPlan }: { initialPlan: Plan }) {
               onClick={() => setPlan("TRIAL")}
               className="text-gold underline underline-offset-4"
             >
-              Try one class — ${PRICING.TRIAL.introCents / 100}
+              Try one class for ${PRICING.TRIAL.introCents / 100}
             </button>
             .
           </p>
@@ -381,7 +381,7 @@ export function JoinCheckout({ initialPlan }: { initialPlan: Plan }) {
             onBlur={() =>
               setPhoneErr(
                 phone && !isValidUSPhone(phone)
-                  ? "Enter a valid US phone number — (XXX) XXX-XXXX."
+                  ? "Enter a valid US phone number, like (XXX) XXX-XXXX."
                   : null,
               )
             }
@@ -435,8 +435,8 @@ export function JoinCheckout({ initialPlan }: { initialPlan: Plan }) {
         {promoState.status === "ok" && (
           <p className="mt-1.5 text-sm text-gold">
             {promoState.percentOff >= 100
-              ? "Code applied — your membership is free. 🥊"
-              : `Code applied — ${promoState.percentOff}% off.`}
+              ? "Code applied. Your membership is free. 🥊"
+              : `Code applied. ${promoState.percentOff}% off.`}
           </p>
         )}
         {promoState.status === "bad" && (
@@ -552,12 +552,12 @@ export function JoinCheckout({ initialPlan }: { initialPlan: Plan }) {
 
       <p className="text-center text-xs leading-relaxed text-cream/40">
         {freePromo
-          ? "No charge today — your promo code covers your membership."
+          ? "No charge today. Your promo code covers your membership."
           : isTrial
-            ? `$${amount} today — a one-time drop-in. No membership starts, cancel nothing. Secured by Square.`
+            ? `$${amount} today, a one-time drop-in. No membership starts, cancel nothing. Secured by Square.`
             : plan === "FULL"
               ? `$${amount} today, then $${PRICING.FULL.recurringCents / 100}/mo. Cancel anytime · no contract · secured by Square.`
-              : `$${amount} today — one payment, no auto-renewal. Secured by Square.`}
+              : `$${amount} today, one payment, no auto-renewal. Secured by Square.`}
       </p>
     </form>
   );

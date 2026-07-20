@@ -12,7 +12,7 @@ export function MembershipContact() {
     <section className="rounded-3xl border border-oxblood-600/50 bg-oxblood/25 p-6 sm:p-8">
       <h2 className="font-poster text-2xl text-bone">Manage membership</h2>
       <p className="mt-2 text-cream/60">
-        Need to pause or cancel? We handle that personally, one on one — reach out and
+        Need to pause or cancel? We handle that personally, one on one. Reach out and
         we&apos;ll sort you out.
       </p>
       <button
@@ -33,7 +33,7 @@ export function MembershipContact() {
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="font-poster text-2xl text-bone">Want to pause or cancel?</h3>
-            <p className="mt-3 text-cream/75">Talk to us — we&apos;ll sort you out.</p>
+            <p className="mt-3 text-cream/75">Talk to us. We&apos;ll sort you out.</p>
 
             <div className="mt-7 grid gap-3">
               <a

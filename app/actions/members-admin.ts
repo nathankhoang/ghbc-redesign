@@ -79,7 +79,7 @@ async function changeMembership(
     if (!res.ok) {
       return {
         ok: false,
-        error: `Square ${action} failed — nothing was changed. ${res.error ?? ""}`.trim(),
+        error: `Square ${action} failed. Nothing was changed. ${res.error ?? ""}`.trim(),
       };
     }
   }
@@ -258,7 +258,7 @@ export async function syncFromSquare(): Promise<AdminResult> {
   return {
     ok: true,
     info: `Linked ${created} member${created === 1 ? "" : "s"} from Square (claim links emailed).${
-      skippedNoEmail ? ` ${skippedNoEmail} skipped — no email on the Square customer.` : ""
+      skippedNoEmail ? ` ${skippedNoEmail} skipped, no email on the Square customer.` : ""
     }`,
   };
 }

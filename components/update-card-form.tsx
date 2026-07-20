@@ -46,7 +46,7 @@ export function UpdateCardForm() {
         cardRef.current = card;
         setReady(true);
       } catch {
-        setMsg({ kind: "err", text: "Card form failed to load — refresh and try again." });
+        setMsg({ kind: "err", text: "Card form failed to load. Refresh and try again." });
       }
     })();
     return () => {
@@ -83,7 +83,7 @@ export function UpdateCardForm() {
     <div id="payment" className="rounded-3xl border border-oxblood-600/50 bg-oxblood/25 p-6">
       <h2 className="font-poster text-2xl text-bone">Payment method</h2>
       <p className="mt-1 text-sm text-cream/60">
-        Update the card your membership charges. Stored securely by Square — we never see
+        Update the card your membership charges. Stored securely by Square. We never see
         your card number.
       </p>
       {SQ_ENABLED ? (

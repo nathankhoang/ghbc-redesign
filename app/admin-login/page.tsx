@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { LoginForm } from "@/components/login-form";
 
 export const metadata: Metadata = {
-  title: "Staff Login — Golden Hill Boxing Club",
+  title: "Staff Login · Golden Hill Boxing Club",
   robots: { index: false },
 };
 

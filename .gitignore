@@ -54,3 +54,5 @@ devserver.log
 
 # but DO commit the env template
 !.env.example
+
+.env*

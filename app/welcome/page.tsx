@@ -30,7 +30,7 @@ export default async function WelcomePage({
         </h1>
         <Reveal delay={0.4} className="mx-auto mt-8 max-w-lg text-xl text-cream/80">
           Your membership is active. Wraps and gloves are on us for your first
-          session — now let&apos;s get you booked.
+          session. Now let&apos;s get you booked.
         </Reveal>
         <Reveal delay={0.6} className="mt-10 flex flex-wrap justify-center gap-4">
           <Link

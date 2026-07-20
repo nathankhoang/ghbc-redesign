@@ -101,7 +101,7 @@ export async function sendBookingConfirmation(
     layout(
       `See you soon, ${firstName}. 🥊`,
       `You're confirmed for <strong style="color:#f6f0e2;">${cls.classType}</strong> on <strong style="color:#f6f0e2;">${when}</strong>.
-       Come ready to train — water and hand wraps recommended.`,
+       Come ready to train. Water and hand wraps recommended.`,
       { href: `${SITE_URL}/schedule`, label: "View my classes" },
     ),
   );
@@ -118,10 +118,10 @@ export async function sendClaimLink(
     to,
     "Claim your Golden Hill Boxing Club account",
     layout(
-      `Hey ${firstName} — your new member portal is ready`,
+      `Hey ${firstName}, your new member portal is ready`,
       `We've launched a new members site where you can book classes, track your
        progress and manage your membership. Your membership carries over exactly
-       as-is — same price, nothing changes with your billing. Just set a
+       as-is. Same price, nothing changes with your billing. Just set a
        password to claim your account (no card needed).`,
       { href: claimUrl, label: "Claim my account" },
     ),
@@ -140,7 +140,7 @@ export async function sendCoachInvite(
     layout(
       `Welcome to the corner, ${name}`,
       `You've been added as a coach. Set your password to access your coach
-       dashboard — your weekly classes and rosters live there.`,
+       dashboard. Your weekly classes and rosters live there.`,
       { href: inviteUrl, label: "Set my password" },
     ),
   );
@@ -162,7 +162,7 @@ export async function sendWaitlistPromotion(
   });
   return send(
     to,
-    `A spot opened up — you're in for ${cls.classType}`,
+    `A spot opened up, you're in for ${cls.classType}`,
     layout(
       `You're off the waitlist, ${firstName}! 🥊`,
       `A spot opened up and you're now <strong style="color:#f6f0e2;">confirmed</strong> for
@@ -185,8 +185,8 @@ export async function sendTrialFollowUp(
       `How'd it feel, ${firstName}?`,
       `We hope you left dripping and smiling. Ready to make it official?
        Your first month is just <strong style="color:#f6f0e2;">$${PRICING.FULL.introCents / 100}</strong>,
-       then $${PRICING.FULL.recurringCents / 100}/mo — no contract, cancel anytime.`,
-      { href: `${SITE_URL}/join`, label: `Join — $${PRICING.FULL.introCents / 100} first month` },
+       then $${PRICING.FULL.recurringCents / 100}/mo. No contract, cancel anytime.`,
+      { href: `${SITE_URL}/join`, label: `Join for $${PRICING.FULL.introCents / 100} first month` },
     ),
   );
 }

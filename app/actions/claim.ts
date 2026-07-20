@@ -28,7 +28,7 @@ export async function claimAccount(
     include: { user: { include: { membership: true } } },
   });
   if (!record || record.expiresAt < new Date()) {
-    return { error: "This claim link is invalid or has expired — ask the gym to resend it." };
+    return { error: "This claim link is invalid or has expired. Ask the gym to resend it." };
   }
 
   const user = record.user;
@@ -56,7 +56,7 @@ export async function claimAccount(
     });
   } catch (error) {
     if (error instanceof AuthError) {
-      return { error: "Account claimed — please sign in with your new password." };
+      return { error: "Account claimed. Please sign in with your new password." };
     }
     throw error; // re-throw redirect
   }
