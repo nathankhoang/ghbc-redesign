@@ -21,7 +21,7 @@ Verification methods: production build (`npm run build` — clean, 25 routes), `
 | 13 | Member dashboard: no leaderboard; rewards bar (25-class ticks, 🔥 marker); gold glow + confetti + redeem popup at 100/250; contact-to-cancel | **PASS (code-verified)** | Unredeemed glow persists; confetti + pulse respect `prefers-reduced-motion`; cancel/pause opens tel/mailto panel with (619) 316-6881 / goldenhillboxingclub@gmail.com |
 | 14 | Owner dashboard: multi-page, occurrence-vs-series edits, filters, Square-first pause/cancel/resume, contact popup, no per-coach view, assign cover, Square data | **PASS** | Overview + Members verified in browser; Google-Calendar-style "this class only" (edited flag survives regeneration) vs "all future classes" (template) |
 | 15 | Coach dashboard: week + N/10 + waitlist count + subtle contact only; no cover/broadcast/editing — enforced server-side | **PASS (code-verified)** | `assignSubstitute`/`clearSubstitute`/`toggleAttendance`/`sendAnnouncement` all require OWNER role — direct action calls fail |
-| 16 | Stage 6B: plans script (incl. phased $99→$125), plan IDs not raw prices, webhooks, sync-from-Square, claim link without card, $120 never in new-signup UI | **PASS (code) / BLOCKED (sandbox run)** | Script runs and is idempotent (verified it authenticates + fails cleanly on placeholder token); needs real sandbox credentials to create plans and confirm the $99→$125 rollover |
+| 16 | Stage 6B: plans script (incl. phased $99→$125), plan IDs not raw prices, webhooks, sync-from-Square, claim link without card, $120 never in new-signup UI | **PASS (sandbox-verified 2026-07-19)** | Live run: plans script created all plans in the gym's Square sandbox and re-ran idempotently ("already exists"); full browser checkout with a Square test card created customer + card on file + subscription on the phased plan; Square invoice **PAID $99.00**, subscription ACTIVE and charged through +1 month, phase 2 = $125/mo confirmed in the Catalog. Webhook subscription still pending (needs the deployed URL) |
 | 17 | Stage 9B: waiver gate, 1 trial credit → $99 pitch, coach invite only path, card-on-file update, 10/10 → Join Waitlist with auto-promote email+notification, DB-level double-book, 1h cutoff, past-due/paused blocks, manual class-count adjust, meta/OG/JSON-LD, analytics events | **PASS (code-verified)** | Waiver checkbox required both paths + `waiverAcceptedAt`; trial credit consumed on booking / refunded on cancel; `@@unique([userId, sessionId])`; `CANCEL_CUTOFF_MINUTES=60` constant; LocalBusiness JSON-LD leads with $99; events: cta_join_99, cta_trial, checkout_started, checkout_completed |
 | 18 | Timezone pinned to America/Los_Angeles | **PASS** | DST-safe generation + all displays pinned |
 | 19 | 390px mobile | **PARTIAL** | All new UI built mobile-first (bottom-tab admin nav, card layouts, stacked hero); Chrome's minimum outer window (~500px) prevented a true 390px browser pass — recommend a quick device-emulation check before launch |
@@ -30,8 +30,20 @@ Verification methods: production build (`npm run build` — clean, 25 routes), `
 ## Bugs found & fixed during verification
 - `.env` contained fake placeholder Square app/location IDs → the Web Payments SDK tried to initialize and errored on /join. Blanked them so unconfigured environments render demo mode cleanly.
 
-## What still needs real-world testing once credentials land
-1. Run `npx tsx scripts/setup-square-plans.ts` against sandbox → verify plans in Square dashboard, then a full sandbox checkout per plan (Square test cards), declined-card path, and the $99→$125 phase rollover.
-2. Square webhook events (payment made/failed, subscription updated) flipping membership status.
-3. Sync-from-Square against the real customer list; claim links via Resend.
+## Sandbox testing gotcha (important for future testing)
+Square **silently deactivates** sandbox subscriptions whose customer email is
+`@example.com` (invoice delivery fails → `DEACTIVATED` within seconds, no
+invoice, no error). This is environment behavior, not an app bug — the same
+checkout with a real-domain email goes ACTIVE and bills $99 immediately. Use
+real-looking emails (e.g. `yourname+test@gmail.com`) for sandbox signups.
+Two dead test accounts remain in the dev DB from discovering this
+(sandy-/marty-sandbox-test@example.com) — their DB rows say active but their
+Square subs are deactivated; webhooks would reconcile this in production once
+subscribed. Safe to delete via the owner dashboard.
+
+## What still needs real-world testing
+1. ~~Plans script + sandbox checkout~~ **DONE 2026-07-19** — $99 invoice PAID, subscription ACTIVE on the phased plan. Cycle-2 ($125) rollover is defined in the Catalog phases (Square-managed); literal cycle-2 billing can only be observed after a billing month or with a sandbox test-clock account.
+2. Square webhook events flipping membership status — subscribe `https://<deployed-site>/api/webhooks/square` in the GHBC Website app after the Vercel deploy, set `SQUARE_WEBHOOK_SIGNATURE_KEY`.
+3. Declined-card path (`4000 0000 0000 0002` sandbox decline card), $600/$1,200/$25 one-time checkouts, sync-from-Square, claim links via Resend.
 4. Turnstile blocking with keys set.
+5. Production: re-run `SQUARE_ENVIRONMENT=production npx tsx scripts/setup-square-plans.ts` with production credentials before launch.

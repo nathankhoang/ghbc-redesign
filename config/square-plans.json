@@ -1,13 +1,31 @@
 {
   "_comment": "Square Catalog subscription-plan IDs, written by `npx tsx scripts/setup-square-plans.ts`. Checkout code references these IDs — never raw prices. Run the script against sandbox AND production (SQUARE_ENVIRONMENT).",
   "sandbox": {
-    "FULL": { "planId": "", "variationId": "" },
-    "STANDARD": { "planId": "", "variationId": "" },
-    "GRANDFATHERED": { "planId": "", "variationId": "" }
+    "FULL": {
+      "planId": "B7M3ADFFXQN76Y325SYCPLJA",
+      "variationId": "37W4QJHMVCR5WG7QQJ4NWGQT"
+    },
+    "STANDARD": {
+      "planId": "SU75QFXFRX5HCSGGJQMCSQDE",
+      "variationId": "EYDNM4V4WZDJKGE5IXPFHDQ7"
+    },
+    "GRANDFATHERED": {
+      "planId": "55GIYFTGLV4SBIALOPXYQWRD",
+      "variationId": "5CAUMZG7TJVV2TXH5UURHMQL"
+    }
   },
   "production": {
-    "FULL": { "planId": "", "variationId": "" },
-    "STANDARD": { "planId": "", "variationId": "" },
-    "GRANDFATHERED": { "planId": "", "variationId": "" }
+    "FULL": {
+      "planId": "",
+      "variationId": ""
+    },
+    "STANDARD": {
+      "planId": "",
+      "variationId": ""
+    },
+    "GRANDFATHERED": {
+      "planId": "",
+      "variationId": ""
+    }
   }
 }
